@@ -25,6 +25,7 @@
       --accent-wsp: #25D366;
       --accent-drone: #F59E0B;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
     body { 
@@ -40,7 +41,7 @@
       filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
     }
     #sidebar {
-      width: 380px;
+      width: 390px;
       height: 100vh;
       background-color: var(--bg-panel);
       border-right: 1px solid var(--border-color);
@@ -375,13 +376,32 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--text-muted);
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .card-telemetria-extra {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.68rem;
+      flex-wrap: wrap;
+    }
+    .telemetria-pill {
+      background: rgba(11, 15, 25, 0.6);
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid rgba(55, 65, 81, 0.8);
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
     .card-vel {
       font-family: 'JetBrains Mono', monospace;
       font-weight: 700;
-      font-size: 0.9rem;
+      font-size: 0.88rem;
       color: var(--text-main);
     }
     .card-acciones {
@@ -426,18 +446,20 @@
     }
     .neonu-detenido { box-shadow: 0 0 8px rgba(255, 165, 0, 0.7); border: 1.5px solid #ffa500; }
     .neonu-movimiento { box-shadow: 0 0 10px rgba(16, 185, 129, 0.9); border: 1.5px solid var(--accent-green); }
+
+    /* CONTENEDOR DE VIDEO DEL DRON ENCUADRADO 16:9 */
     .drone-cam-container {
       position: absolute;
       bottom: 20px;
       left: 20px;
-      width: 280px;
-      height: 160px;
+      width: 300px;
+      height: 195px;
       background-color: var(--bg-panel);
       border: 2px solid var(--accent-drone);
       border-radius: 8px;
-      z-index: 1000;
+      z-index: 1050;
       overflow: hidden;
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.75);
       display: flex;
       flex-direction: column;
       transition: all 0.3s ease;
@@ -446,8 +468,9 @@
       display: none !important;
     }
     .drone-cam-header {
-      background: rgba(245, 158, 11, 0.2);
-      padding: 3px 8px;
+      flex-shrink: 0;
+      background: rgba(245, 158, 11, 0.25);
+      padding: 4px 8px;
       font-size: 0.65rem;
       font-weight: 800;
       color: var(--accent-drone);
@@ -456,12 +479,24 @@
       align-items: center;
       border-bottom: 1px solid var(--border-color);
     }
-    .drone-cam-video {
+    .drone-video-wrapper {
+      position: relative;
       width: 100%;
       flex: 1;
       background: #000;
-      border: none;
+      overflow: hidden;
     }
+    .drone-cam-video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #000;
+      border: none;
+      object-fit: cover;
+    }
+
     .movil-cam-container {
       position: absolute;
       bottom: 20px;
@@ -482,6 +517,7 @@
       display: none !important;
     }
     .movil-cam-header {
+      flex-shrink: 0;
       background: rgba(239, 68, 68, 0.2);
       padding: 5px 8px;
       font-size: 0.68rem;
@@ -575,14 +611,18 @@
         border-top: 2px solid var(--accent-cyan); 
       }
       .drone-cam-container { 
-        width: 160px; 
-        height: 100px; 
+        width: 210px; 
+        height: 142px; 
         bottom: 8px; 
         left: 8px; 
       }
+      .drone-cam-header {
+        padding: 3px 6px;
+        font-size: 0.58rem;
+      }
       .movil-cam-container { 
         width: 190px; 
-        height: 120px; 
+        height: 130px; 
         bottom: 8px; 
         right: 8px; 
       }
@@ -594,15 +634,20 @@
     <div id="drone-cam-box" class="drone-cam-container oculto">
       <div class="drone-cam-header">
         <span><i class="fa-solid fa-video"></i> VIVO - DRON ER9</span>
-        <span style="font-size: 0.55rem; color: #10B981;"><i class="fa-solid fa-circle"></i> REC</span>
+        <div style="display: flex; align-items: center; gap: 6px;">
+          <span style="font-size: 0.55rem; color: #10B981;"><i class="fa-solid fa-circle"></i> REC</span>
+          <button onclick="cerrarConsolaDron()" style="background: transparent; border: none; color: #FFF; cursor: pointer; font-size: 0.75rem;" title="Cerrar Dron"><i class="fa-solid fa-xmark"></i></button>
+        </div>
       </div>
-      <iframe class="drone-cam-video" 
-        src="https://www.youtube.com/embed/8UBstbQjySY?autoplay=1&mute=1&loop=1&playlist=8UBstbQjySY" 
-        title="Plaza Independencia de la provincia de Tucumán - vista aérea - DJI" 
-        frameborder="0" 
-        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-        allowfullscreen>
-      </iframe>
+      <div class="drone-video-wrapper">
+        <iframe class="drone-cam-video" 
+          src="https://www.youtube.com/embed/8UBstbQjySY?autoplay=1&mute=1&loop=1&playlist=8UBstbQjySY&playsinline=1&controls=0&modestbranding=1&rel=0" 
+          title="Plaza Independencia de la provincia de Tucumán - vista aérea - DJI" 
+          frameborder="0" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allowfullscreen>
+        </iframe>
+      </div>
     </div>
     <div id="movil-cam-box" class="movil-cam-container oculto">
       <div class="movil-cam-header">
@@ -663,7 +708,7 @@
       <div class="drone-command-panel" id="panel-comandos-dron">
         <div class="drone-command-title">
           <span><i class="fa-solid fa-helicopter"></i> Comandos Dron ER9</span>
-          <button onclick="toggleConsolaDron()" style="background: transparent; border: 1px solid var(--accent-drone); color: var(--accent-drone); border-radius: 4px; padding: 2px 6px; font-size: 0.6rem; font-weight: 700; cursor: pointer;" title="Ocultar Consola de Dron">
+          <button onclick="cerrarConsolaDron()" style="background: transparent; border: 1px solid var(--accent-drone); color: var(--accent-drone); border-radius: 4px; padding: 2px 6px; font-size: 0.6rem; font-weight: 700; cursor: pointer;" title="Ocultar Consola de Dron">
             <i class="fa-solid fa-eye-slash"></i> Ocultar
           </button>
         </div>
@@ -718,7 +763,8 @@
         obtenerRutaMovil: (idMovil, fechaFiltro) => llamar("obtenerRutaMovil", { idMovil, fechaFiltro }),
         obtenerAlertasActivas: () => llamar("obtenerAlertasActivas"),
         desactivarAlerta: (idAlerta) => llamar("desactivarAlerta", { idAlerta }),
-        procesarConsultaGemini: (textoEscuchado, fechaFiltro) => llamar("procesarConsultaGemini", { textoEscuchado, fechaFiltro })
+        procesarConsultaGemini: (textoEscuchado, fechaFiltro) => llamar("procesarConsultaGemini", { textoEscuchado, fechaFiltro }),
+        obtenerGeocercas: () => llamar("obtenerGeocercas")
       };
     }
     window.google = { script: { run: crearRunner(null, null) } };
@@ -755,6 +801,9 @@
 
     const marcadores = {};
     let flotaActual = [];
+    let alertasActuales = [];
+    let geocercasActuales = [];
+    let capaGeocercas = null;
     let estadosPreviosMoviles = {};
     let primeraVez = true;
     let movilEnfocadoId = null;
@@ -781,20 +830,32 @@
       }
     }
 
-    function toggleConsolaDron() {
+    // --- FUNCIONES EXPLÍCITAS DE CONSOLA Y VENTANA DE VIDEO DEL DRON ---
+    function abrirConsolaDron() {
       const panelComandos = document.getElementById('panel-comandos-dron');
       const cajaCamara = document.getElementById('drone-cam-box');
       const btnMaster = document.getElementById('btn-master-dron');
-      const estaAbierto = panelComandos.classList.contains('visible');
-      
+      if (panelComandos) panelComandos.classList.add('visible');
+      if (cajaCamara) cajaCamara.classList.remove('oculto');
+      if (btnMaster) btnMaster.classList.add('activo');
+    }
+
+    function cerrarConsolaDron() {
+      const panelComandos = document.getElementById('panel-comandos-dron');
+      const cajaCamara = document.getElementById('drone-cam-box');
+      const btnMaster = document.getElementById('btn-master-dron');
+      if (panelComandos) panelComandos.classList.remove('visible');
+      if (cajaCamara) cajaCamara.classList.add('oculto');
+      if (btnMaster) btnMaster.classList.remove('activo');
+    }
+
+    function toggleConsolaDron() {
+      const panelComandos = document.getElementById('panel-comandos-dron');
+      const estaAbierto = panelComandos && panelComandos.classList.contains('visible');
       if (estaAbierto) {
-        panelComandos.classList.remove('visible');
-        cajaCamara.classList.add('oculto');
-        btnMaster.classList.remove('activo');
+        cerrarConsolaDron();
       } else {
-        panelComandos.classList.add('visible');
-        cajaCamara.classList.remove('oculto');
-        btnMaster.classList.add('activo');
+        abrirConsolaDron();
       }
     }
 
@@ -833,7 +894,6 @@
       }
       let urlVideo = ipDestino.trim();
 
-      // Si es HTTP local, abrir en ventana segura para preservar el SSL de Netlify
       if (urlVideo.startsWith('http://') && !window.location.protocol.includes('http:')) {
         window.open(urlVideo, '_blank');
         hablarWilson("Abriendo transmisión externa segura para el " + nombre + ", jefe.", true);
@@ -1017,6 +1077,111 @@
       return (!u || u.includes("?") || u.includes("usuarioParam")) ? "Gustavo Fabián" : u;
     }
 
+    // --- FORMATEADORES DE TELEMETRÍA COMPLETA DE LA PLANILLA ---
+    function formatearCombustible(m) {
+      let raw = m.combustible ?? m.nivel_combustible ?? m.nivelCombustible ?? m.tanque ?? "";
+      let str = String(raw).trim();
+      if (!str || str === "undefined" || str === "null" || str === "N/D") return "N/D";
+      if (str.includes('%')) return str;
+      let val = parseFloat(str.replace(',', '.'));
+      if (isNaN(val)) return "N/D";
+      if (val > 0 && val <= 1) return Math.round(val * 100) + "%";
+      return Math.round(val) + "%";
+    }
+
+    function obtenerNumeroCombustible(m) {
+      const str = formatearCombustible(m);
+      if (str === "N/D") return NaN;
+      return parseFloat(str.replace('%', ''));
+    }
+
+    function obtenerNumeroBateria(m) {
+      const str = formatearBateria(m.bateria);
+      if (!str || str === "N/D") return NaN;
+      return parseFloat(str.replace('%', ''));
+    }
+
+    function obtenerKmDiaNumero(m) {
+      let raw = m.km_dia ?? m.kmDia ?? 0;
+      let val = parseFloat(String(raw).replace(',', '.'));
+      return isNaN(val) ? 0 : val;
+    }
+
+    function obtenerKmMesNumero(m) {
+      let raw = m.kilometro_mes ?? m.kilometros_mes ?? m.km_mes ?? m.kmMes ?? 0;
+      let val = parseFloat(String(raw).replace(',', '.'));
+      return isNaN(val) ? 0 : val;
+    }
+
+    function obtenerKmTotalesNumero(m) {
+      let raw = m.kilometros_totales ?? m.km_totales ?? m.km_total ?? m.odometro ?? m.kmTotales;
+      if (raw !== undefined && raw !== null && String(raw).trim() !== "") {
+        let val = parseFloat(String(raw).replace(',', '.'));
+        if (!isNaN(val)) return val;
+      }
+      return obtenerKmMesNumero(m);
+    }
+
+    // ==========================================================
+    // GENERADOR DE PARTE COMPLETO DE ALERTAS Y NOVEDADES EN VIVO
+    // ==========================================================
+    function generarReporteNovedadesYAlertas(soloAlertasOficiales = false) {
+      const bloques = [];
+
+      // 1. Alertas activas desde Historico_Alertas
+      if (alertasActuales && alertasActuales.length > 0) {
+        const listaAlertas = alertasActuales.map(a => a.movil + " (" + a.tipo + ": " + a.detalle + ")").join("; ");
+        bloques.push("Hay " + alertasActuales.length + " alertas pendientes en el historial: " + listaAlertas + ".");
+      }
+
+      // 2. Alertas registradas en la columna estado_alerta de Moviles_Flota
+      const alertasEnFlota = flotaActual.filter(m => {
+        const al = String(m.alerta || m.estado_alerta || "").trim().toLowerCase();
+        return al && al !== "sin alertas" && al !== "normal" && al !== "undefined" && !al.includes("(leida)");
+      });
+      if (alertasEnFlota.length > 0) {
+        const detalleFlota = alertasEnFlota.map(m => m.nombre + " con " + (m.alerta || m.estado_alerta)).join(", ");
+        bloques.push("Novedades en estado de flota: " + detalleFlota + ".");
+      }
+
+      // 3. Control en tiempo real de Exceso de Velocidad (> 60 km/h)
+      const enExcesoVel = flotaActual.filter(m => (parseFloat(m.velocidad) || 0) > 60);
+      if (enExcesoVel.length > 0) {
+        const detalleVel = enExcesoVel.map(m => m.nombre + " circulando a " + m.velocidad + " kilómetros por hora").join(", ");
+        bloques.push("Atención por exceso de velocidad: " + detalleVel + ".");
+      }
+
+      if (!soloAlertasOficiales) {
+        // 4. Control en tiempo real de Combustible Bajo (<= 25%)
+        const bajosComb = flotaActual.filter(m => {
+          const c = obtenerNumeroCombustible(m);
+          return !isNaN(c) && c <= 25;
+        });
+        if (bajosComb.length > 0) {
+          const detalleComb = bajosComb.map(m => m.nombre + " al " + formatearCombustible(m)).join(", ");
+          bloques.push("Alerta de combustible bajo: " + detalleComb + ".");
+        }
+
+        // 5. Control en tiempo real de Batería Crítica en equipo GPS (<= 15%)
+        const bajaBat = flotaActual.filter(m => {
+          const b = obtenerNumeroBateria(m);
+          return !isNaN(b) && b <= 15;
+        });
+        if (bajaBat.length > 0) {
+          const detalleBat = bajaBat.map(m => m.nombre + " con batería al " + formatearBateria(m.bateria)).join(", ");
+          bloques.push("Batería crítica de rastreo en: " + detalleBat + ".");
+        }
+      }
+
+      if (bloques.length === 0) {
+        return soloAlertasOficiales
+          ? "Sin alertas operativas pendientes en el historial en este momento, jefe."
+          : "Sin novedades ni alertas críticas en la flota, jefe. Niveles de combustible, velocidades y geocercas dentro de los parámetros normales.";
+      }
+
+      return "Parte de novedades y alertas, jefe: " + bloques.join(" ");
+    }
+
     function forzarReporteWilson() {
       const nombreUsuario = obtenerNombreUsuarioReal();
       const enMoviles = flotaActual.filter(function(m) { 
@@ -1030,7 +1195,9 @@
       } else {
         detalleMarcha = "Toda la flota se encuentra detenida.";
       }
-      hablarWilson("Reporte Búnker ER9 para " + nombreUsuario + ". " + detalleMarcha + " Patrullaje aéreo a la espera de instrucciones, jefe.", true);
+
+      const novedades = generarReporteNovedadesYAlertas(false);
+      hablarWilson("Reporte Búnker ER9 para " + nombreUsuario + ". " + detalleMarcha + " " + novedades, true);
     }
 
     function parsearFechaNatural(texto) {
@@ -1100,9 +1267,8 @@
       if (encontrado) return encontrado;
       if (limpio.includes("azul")) return flotaActual.find(m => String(m.id).includes("24848479") || String(m.nombre).toLowerCase().includes("azul"));
       if (limpio.includes("blanco")) return flotaActual.find(m => String(m.id).includes("47961388") || String(m.nombre).toLowerCase().includes("blanco"));
-      if (limpio.includes("auditor") || limpio.includes("jose")) return flotaActual.find(m => String(m.id).includes("31222059") || String(m.nombre).toLowerCase().includes("auditor"));
-
-      if (limpio.includes("admin") || limpio.includes("syta") || limpio.includes("cita")) return flotaActual.find(m => String(m.id).includes("77903373") || String(m.nombre).toLowerCase().includes("admin"));
+      if (limpio.includes("auditor") || limpio.includes("jose")) return flotaActual.find(m => String(m.id).includes("31222059") || String(m.nombre).toLowerCase().includes("auditor") || String(m.nombre).toLowerCase().includes("jose"));
+      if (limpio.includes("admin") || limpio.includes("syta") || limpio.includes("cita")) return flotaActual.find(m => String(m.id).includes("77903373") || String(m.nombre).toLowerCase().includes("admin") || String(m.nombre).toLowerCase().includes("syta"));
       if (limpio.includes("udl")) return flotaActual.find(m => String(m.id).toLowerCase().includes("udl") || String(m.nombre).toLowerCase().includes("udl"));
       return null;
     }
@@ -1140,6 +1306,28 @@
       abrirUrlExternaSegura(obtenerUrlWhatsApp(nombre, lat, lng, vel, estado));
     }
 
+    // --- DIBUJAR / OCULTAR GEOCERCAS EN EL MAPA ---
+    function mostrarGeocercasEnMapa(zonas) {
+      if (capaGeocercas) {
+        map.removeLayer(capaGeocercas);
+        capaGeocercas = null;
+      }
+      if (!zonas || zonas.length === 0) return;
+      capaGeocercas = L.featureGroup();
+      zonas.forEach(z => {
+        const circulo = L.circle([z.lat, z.lng], {
+          radius: z.radio,
+          color: '#06B6D4',
+          fillColor: '#06B6D4',
+          fillOpacity: 0.15,
+          weight: 2
+        }).bindPopup('<b>Geocerca: ' + sanitizar(z.nombre) + '</b><br>Radio permitido: ' + z.radio + ' m');
+        capaGeocercas.addLayer(circulo);
+      });
+      capaGeocercas.addTo(map);
+      map.fitBounds(capaGeocercas.getBounds(), { padding: [50, 50] });
+    }
+
     // ==========================================================
     // PROCESAMIENTO CENTRAL DE COMANDOS DE VOZ Y CONSULTAS
     // ==========================================================
@@ -1168,16 +1356,55 @@
       }
 
       const textoLimpioLow = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+      const movilDirecto = buscarMovilEnFlota(texto);
 
-      // 1. COMANDOS DE DRON
-      if (textoLimpioLow.includes("ocultar dron") || textoLimpioLow.includes("apagar dron") || textoLimpioLow.includes("cerrar dron")) {
-        const panelComandos = document.getElementById('panel-comandos-dron');
-        const cajaCamara = document.getElementById('drone-cam-box');
-        const btnMaster = document.getElementById('btn-master-dron');
-        if (panelComandos) panelComandos.classList.remove('visible');
-        if (cajaCamara) cajaCamara.classList.add('oculto');
-        if (btnMaster) btnMaster.classList.remove('activo');
-        hablarWilson("Consola de dron cerrada, jefe.", true);
+      // 0. COMANDOS DE NOVEDADES Y ALERTAS (AUDITORÍA COMPLETA DE FLOTA)
+      const pideNovedades = textoLimpioLow.includes("novedad") || 
+                            textoLimpioLow.includes("alerta") || 
+                            textoLimpioLow.includes("problema") || 
+                            textoLimpioLow.includes("incidente") || 
+                            textoLimpioLow.includes("que paso") || 
+                            textoLimpioLow.includes("como esta todo");
+
+      const pideHistorialAlertas = textoLimpioLow.includes("historial de alerta") || textoLimpioLow.includes("ultimas alerta") || textoLimpioLow.includes("alertas leidas") || textoLimpioLow.includes("registro de alerta");
+
+      if (pideNovedades && !movilDirecto && !pideHistorialAlertas) {
+        verificarAlertasActivas();
+        const reporteNovedades = generarReporteNovedadesYAlertas(false);
+        hablarWilson(reporteNovedades, true);
+        return;
+      }
+
+      // 1. COMANDOS DE DRON (ABRIR / DESPEGAR / ATERRIZAR / OCULTAR)
+      const mencionaDron = textoLimpioLow.includes("dron") || textoLimpioLow.includes("drone");
+      const consolaDronAbierta = document.getElementById('panel-comandos-dron').classList.contains('visible');
+      const pideCerrarDron = textoLimpioLow.includes("aterrizar") || 
+                             textoLimpioLow.includes("retorno") || 
+                             textoLimpioLow.includes("rtb") || 
+                             textoLimpioLow.includes("apagar dron") || 
+                             textoLimpioLow.includes("cerrar dron") || 
+                             textoLimpioLow.includes("guardar dron") || 
+                             (textoLimpioLow.includes("ocultar") && (mencionaDron || consolaDronAbierta));
+
+      const pideAbrirDron = mencionaDron || 
+                            textoLimpioLow.includes("despegar") || 
+                            textoLimpioLow.includes("patrullar") || 
+                            textoLimpioLow.includes("orbitar");
+
+      if (pideCerrarDron) {
+        cerrarConsolaDron();
+        hablarWilson("Dron retornando a base. Ventana de video oculta, jefe.", true);
+        return;
+      }
+
+      if (pideAbrirDron) {
+        abrirConsolaDron();
+        if (movilDirecto) {
+          enfocarMovil(movilDirecto, false);
+          hablarWilson("Desplegando patrullaje de dron en vivo sobre el " + movilDirecto.nombre + ", jefe.", true);
+        } else {
+          hablarWilson("Dron desplegado y transmitiendo en vivo, jefe.", true);
+        }
         return;
       }
 
@@ -1187,9 +1414,10 @@
         return;
       }
 
-      // 3. COMANDOS DE MAPA
+      // 3. COMANDOS DE MAPA Y GEOCERCAS
       if (textoLimpioLow.includes("limpiar mapa") || textoLimpioLow.includes("borrar mapa") || textoLimpioLow.includes("sacar ruta") || textoLimpioLow.includes("cerrar ruta")) {
         limpiarRutaMapa();
+        if (capaGeocercas) { map.removeLayer(capaGeocercas); capaGeocercas = null; }
         hablarWilson("Radar despejado, jefe.", true);
         return;
       }
@@ -1204,9 +1432,138 @@
         return;
       }
 
-      // 4. BÚSQUEDA Y REPORTE DE UN MÓVIL DIRECTO
-      const movilDirecto = buscarMovilEnFlota(texto);
+      if (!movilDirecto && (textoLimpioLow.includes("geocerca") || textoLimpioLow.includes("zona") || textoLimpioLow.includes("campamento") || textoLimpioLow.includes("ingenio"))) {
+        if (geocercasActuales.length > 0) {
+          mostrarGeocercasEnMapa(geocercasActuales);
+          const listaZonas = geocercasActuales.map(z => z.nombre + " con radio de " + z.radio + " metros").join(", ");
+          hablarWilson("Mostrando las geocercas autorizadas en el mapa: " + listaZonas + ", jefe.", true);
+          return;
+        }
+      }
+
+      // 4. COMANDOS GLOBALES DE TIPO DE VEHÍCULOS (CAMIONES VS LIVIANOS)
+      if (!movilDirecto && (textoLimpioLow.includes("camion") || textoLimpioLow.includes("liviano") || textoLimpioLow.includes("tipo de vehiculo"))) {
+        const camiones = flotaActual.filter(m => String(m.tipo_vehiculo || "").toLowerCase().includes("camion"));
+        const livianos = flotaActual.filter(m => String(m.tipo_vehiculo || "").toLowerCase().includes("liviano"));
+        hablarWilson("La flota tiene " + camiones.length + " camiones (" + camiones.map(m => m.nombre).join(", ") + ") y " + livianos.length + " vehículos livianos (" + livianos.map(m => m.nombre).join(", ") + "), jefe.", true);
+        return;
+      }
+
+      // 5. COMANDOS DE KILÓMETROS (DÍA, MES Y TOTALES)
+      const pideKm = textoLimpioLow.includes("kilometro") || textoLimpioLow.includes("km") || textoLimpioLow.includes("distancia") || textoLimpioLow.includes("odometro") || textoLimpioLow.includes("recorrido total");
+      if (pideKm && !textoLimpioLow.includes("ruta") && !textoLimpioLow.includes("mapa")) {
+        const esTotal = textoLimpioLow.includes("total") || textoLimpioLow.includes("acumulado") || textoLimpioLow.includes("lleva");
+        const esMes = textoLimpioLow.includes("mes") || textoLimpioLow.includes("mensual");
+
+        if (movilDirecto) {
+          const kmDia = obtenerKmDiaNumero(movilDirecto).toFixed(2);
+          const kmMes = obtenerKmMesNumero(movilDirecto).toFixed(2);
+          const kmTot = obtenerKmTotalesNumero(movilDirecto).toFixed(2);
+
+          if (esTotal) {
+            enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " lleva recorridos " + kmTot + " kilómetros en total, jefe.");
+          } else if (esMes) {
+            enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " registra " + kmMes + " kilómetros acumulados en el mes, jefe.");
+          } else {
+            enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " lleva " + kmDia + " kilómetros hoy y " + kmMes + " kilómetros en el mes, jefe.");
+          }
+        } else {
+          let sumaDia = 0, sumaMes = 0, sumaTot = 0;
+          flotaActual.forEach(m => {
+            sumaDia += obtenerKmDiaNumero(m);
+            sumaMes += obtenerKmMesNumero(m);
+            sumaTot += obtenerKmTotalesNumero(m);
+          });
+          if (esTotal) {
+            hablarWilson("Toda la flota lleva recorridos " + sumaTot.toFixed(1) + " kilómetros en total, jefe.", true);
+          } else if (esMes) {
+            hablarWilson("En lo que va del mes, la flota completa suma " + sumaMes.toFixed(1) + " kilómetros, jefe.", true);
+          } else {
+            hablarWilson("Hoy la flota lleva " + sumaDia.toFixed(1) + " kilómetros y en el mes suma " + sumaMes.toFixed(1) + " kilómetros, jefe.", true);
+          }
+        }
+        return;
+      }
+
+      // 6. COMANDOS DE COMBUSTIBLE
+      const pideCombustible = textoLimpioLow.includes("combustible") || textoLimpioLow.includes("nafta") || textoLimpioLow.includes("gasoil") || textoLimpioLow.includes("tanque") || textoLimpioLow.includes("diesel");
+      if (pideCombustible) {
+        if (movilDirecto) {
+          const comb = formatearCombustible(movilDirecto);
+          enfocarMovil(movilDirecto, "El nivel de combustible del " + movilDirecto.nombre + " es del " + comb + ", jefe.");
+        } else {
+          if (flotaActual.length === 0) {
+            hablarWilson("Aún no se recibieron datos de combustible desde el servidor, jefe.", true);
+          } else {
+            const listaComb = flotaActual.map(m => m.nombre + " al " + formatearCombustible(m)).join(", ");
+            hablarWilson("Nivel de combustible de la flota: " + listaComb + ", jefe.", true);
+          }
+        }
+        return;
+      }
+
+      // 7. CONSULTAS SOBRE TODOS LOS DATOS DE LA PLANILLA DE UN MÓVIL ESPECÍFICO
       if (movilDirecto) {
+        if (pideNovedades) {
+          const alertasMovil = alertasActuales.filter(a => String(a.movil || "").toLowerCase().includes(String(movilDirecto.nombre || "").toLowerCase()));
+          const combNum = obtenerNumeroCombustible(movilDirecto);
+          const batNum = obtenerNumeroBateria(movilDirecto);
+          const velNum = parseFloat(movilDirecto.velocidad) || 0;
+          const novs = [];
+          if (alertasMovil.length > 0) novs.push("tiene " + alertasMovil.length + " alerta activa: " + alertasMovil[alertasMovil.length - 1].detalle);
+          if (movilDirecto.alerta && movilDirecto.alerta.toLowerCase() !== "sin alertas" && !movilDirecto.alerta.toLowerCase().includes("(leida)")) {
+            novs.push("figura con estado " + movilDirecto.alerta);
+          }
+          if (velNum > 60) novs.push("circula con exceso de velocidad a " + velNum + " km/h");
+          if (!isNaN(combNum) && combNum <= 25) novs.push("está bajo de combustible al " + formatearCombustible(movilDirecto));
+          if (!isNaN(batNum) && batNum <= 15) novs.push("tiene batería crítica al " + formatearBateria(movilDirecto.bateria));
+
+          if (novs.length > 0) {
+            enfocarMovil(movilDirecto, "Novedades del " + movilDirecto.nombre + ": " + novs.join(" y ") + ", jefe.");
+          } else {
+            enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " no presenta alertas ni novedades críticas. Combustible al " + formatearCombustible(movilDirecto) + " y batería al " + formatearBateria(movilDirecto.bateria) + ", jefe.");
+          }
+          return;
+        }
+
+        if (textoLimpioLow.includes("telefono") || textoLimpioLow.includes("celular") || textoLimpioLow.includes("numero") || textoLimpioLow.includes("linea")) {
+          enfocarMovil(movilDirecto, "El número de teléfono del " + movilDirecto.nombre + " es " + (movilDirecto.telefono || "no cargado en la planilla") + ", jefe.");
+          return;
+        }
+
+        if (textoLimpioLow.includes("correo") || textoLimpioLow.includes("mail") || textoLimpioLow.includes("gmail") || textoLimpioLow.includes("cuenta")) {
+          const mail = movilDirecto.correo || movilDirecto.correo_movil || "no asignado";
+          enfocarMovil(movilDirecto, "El correo asociado al " + movilDirecto.nombre + " es " + mail + ", jefe.");
+          return;
+        }
+
+        if (textoLimpioLow.includes("tipo") || textoLimpioLow.includes("vehiculo") || textoLimpioLow.includes("categoria") || textoLimpioLow.includes("porte")) {
+          enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " es un vehículo de tipo " + (movilDirecto.tipo_vehiculo || "no especificado") + ", jefe.");
+          return;
+        }
+
+        if (textoLimpioLow.includes("zona") || textoLimpioLow.includes("geocerca") || textoLimpioLow.includes("ubicacion") || textoLimpioLow.includes("donde")) {
+          const zonaTxt = movilDirecto.zona_actual || "zona sin geocerca asignada";
+          enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " se ubica en " + zonaTxt + ", coordenadas " + (movilDirecto.coordenadas || "") + ", jefe.");
+          return;
+        }
+
+        if (textoLimpioLow.includes("ip") || textoLimpioLow.includes("enlace") || textoLimpioLow.includes("transmision") || textoLimpioLow.includes("trasmision")) {
+          const ipTxt = movilDirecto.ip ? ("IP privada " + movilDirecto.ip) : "sin IP privada configurada";
+          enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " tiene " + ipTxt + ", jefe.");
+          return;
+        }
+
+        if (textoLimpioLow.includes("comando") || textoLimpioLow.includes("orden")) {
+          enfocarMovil(movilDirecto, "El comando administrativo del " + movilDirecto.nombre + " figura como " + (movilDirecto.comando_admin || "normal") + ", jefe.");
+          return;
+        }
+
+        if (textoLimpioLow.includes("ultimo") || textoLimpioLow.includes("hora") || textoLimpioLow.includes("conexion") || textoLimpioLow.includes("registro")) {
+          enfocarMovil(movilDirecto, "El último registro del " + movilDirecto.nombre + " fue el " + (movilDirecto.ultimo_registro || "no disponible") + ", jefe.");
+          return;
+        }
+
         if (textoLimpioLow.includes("ruta") || textoLimpioLow.includes("recorrido") || textoLimpioLow.includes("historial")) {
           cargarRutaMovil(movilDirecto.id, movilDirecto.nombre);
           return;
@@ -1214,10 +1571,6 @@
         if (textoLimpioLow.includes("camara") || textoLimpioLow.includes("vivo") || textoLimpioLow.includes("video")) {
           enfocarMovil(movilDirecto, false);
           abrirCamaraMovil(movilDirecto.nombre, movilDirecto.ip || movilDirecto.ip_privada || movilDirecto.link_trasmision);
-          return;
-        }
-        if (textoLimpioLow.includes("dron") || textoLimpioLow.includes("drone")) {
-          comandarDrone(movilDirecto.nombre);
           return;
         }
         if (textoLimpioLow.includes("whatsapp") || textoLimpioLow.includes("mandar")) {
@@ -1233,30 +1586,19 @@
           return;
         }
 
-        // Consultas directas de telemetría por voz
-        if (textoLimpioLow.includes("kilometro") || textoLimpioLow.includes("km") || textoLimpioLow.includes("distancia")) {
-          if (textoLimpioLow.includes("mes") || textoLimpioLow.includes("mensual")) {
-            enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " registra " + (movilDirecto.km_mes || "0.00") + " kilómetros acumulados en el mes, jefe.");
-          } else {
-            enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " lleva recorridos " + (movilDirecto.km_dia || "0.00") + " kilómetros hoy, jefe.");
-          }
-          return;
-        }
-
-        if (textoLimpioLow.includes("combustible") || textoLimpioLow.includes("nafta") || textoLimpioLow.includes("gasoil") || textoLimpioLow.includes("tanque")) {
-          enfocarMovil(movilDirecto, "El nivel de combustible del " + movilDirecto.nombre + " es del " + (movilDirecto.combustible || "no disponible") + ", jefe.");
-          return;
-        }
-
         if (textoLimpioLow.includes("bateria") || textoLimpioLow.includes("carga")) {
           enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " tiene la batería al " + (formatearBateria(movilDirecto.bateria) || "100%") + ", jefe.");
           return;
         }
 
-        if (textoLimpioLow.includes("informe") || textoLimpioLow.includes("detalle") || textoLimpioLow.includes("ficha")) {
+        if (textoLimpioLow.includes("informe") || textoLimpioLow.includes("detalle") || textoLimpioLow.includes("ficha") || textoLimpioLow.includes("todo")) {
           const vel = parseFloat(movilDirecto.velocidad) || 0;
           const velTxt = vel > 0 ? ("en movimiento a " + vel + " km/h") : "detenido";
-          const msj = "Informe del " + movilDirecto.nombre + ": se encuentra " + velTxt + ". Registra " + (movilDirecto.km_dia || "0.00") + " km hoy y " + (movilDirecto.km_mes || "0.00") + " km en el mes. Batería al " + formatearBateria(movilDirecto.bateria) + ", jefe.";
+          const combTxt = formatearCombustible(movilDirecto);
+          const kmDia = obtenerKmDiaNumero(movilDirecto).toFixed(2);
+          const kmMes = obtenerKmMesNumero(movilDirecto).toFixed(2);
+          const zonaTxt = movilDirecto.zona_actual ? (" en " + movilDirecto.zona_actual) : "";
+          const msj = "Ficha completa del " + movilDirecto.nombre + " (ID " + movilDirecto.id + ", tipo " + (movilDirecto.tipo_vehiculo || "vehículo") + "): se encuentra " + velTxt + zonaTxt + ". Combustible al " + combTxt + ", batería al " + formatearBateria(movilDirecto.bateria) + ". Registra " + kmDia + " km hoy y " + kmMes + " km en el mes. Teléfono " + (movilDirecto.telefono || "no cargado") + ", último registro " + (movilDirecto.ultimo_registro || "sin fecha") + ", jefe.";
           enfocarMovil(movilDirecto, msj);
           return;
         }
@@ -1264,14 +1606,17 @@
         // REPORTE FORMAL POR DEFECTO
         const vel = parseFloat(movilDirecto.velocidad) || 0;
         const estadoTxt = vel > 0 ? ("en movimiento a " + vel + " kilómetros por hora") : "detenido";
+        const zonaTxt = movilDirecto.zona_actual ? (" en " + movilDirecto.zona_actual) : "";
+        const combTxt = formatearCombustible(movilDirecto);
         const batTxt = movilDirecto.bateria ? (". Batería al " + formatearBateria(movilDirecto.bateria)) : "";
-        const kmHoy = (movilDirecto.km_dia && movilDirecto.km_dia !== "0.00") ? (". Lleva " + movilDirecto.km_dia + " kilómetros hoy") : "";
+        const kmHoyVal = obtenerKmDiaNumero(movilDirecto);
+        const kmHoy = (kmHoyVal > 0) ? (". Lleva " + kmHoyVal.toFixed(2) + " kilómetros hoy") : "";
 
-        enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " se encuentra " + estadoTxt + batTxt + kmHoy + ", jefe.");
+        enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " se encuentra " + estadoTxt + zonaTxt + ". Combustible al " + combTxt + batTxt + kmHoy + ", jefe.");
         return; 
       }
 
-      // 5. SI NO COINCIDE LOCALMENTE, CONSULTA A GEMINI/APPS SCRIPT
+      // 8. SI NO COINCIDE LOCALMENTE (O PIDE HISTORIAL DE ALERTAS), CONSULTA AL SERVIDOR
       const fechaAEnviar = document.getElementById('input-fecha-filtro').value;
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
@@ -1300,6 +1645,17 @@
              let textoHablar = resObj.texto ? String(resObj.texto) : "";
              let finalLat = parseFloat(resObj.lat);
              let finalLng = parseFloat(resObj.lng);
+
+             if (accion === "OCULTAR_DRON") {
+                 cerrarConsolaDron();
+                 hablarWilson(textoHablar || "Consola de dron cerrada, jefe.", true);
+                 return;
+             }
+             if (accion === "DRON" && !movilId) {
+                 abrirConsolaDron();
+                 hablarWilson(textoHablar || "Desplegando Dron ER9, jefe.", true);
+                 return;
+             }
 
              if (isNaN(finalLat) || isNaN(finalLng)) {
                  let latM = strCrudo.match(/"lat"\s*:\s*(-?\d{1,3}[\.,]\d+)/i) || strCrudo.match(/(-2[67][\.,]\d+)/);
@@ -1343,7 +1699,7 @@
                      enfocarMovil(targetMovil, textoHablar || ("Enfocando el " + targetMovil.nombre + ", jefe.")); 
                  }
              } else {
-                 hablarWilson(textoHablar || "No fue posible localizar ese móvil en el sistema, jefe.", false);
+                 hablarWilson(textoHablar || "No fue posible localizar ese dato o móvil en el sistema, jefe.", true);
              }
           })
           .withFailureHandler(function() {
@@ -1384,15 +1740,19 @@
     }
 
     function comandarDrone(nombreMovil) {
-      const panelComandos = document.getElementById('panel-comandos-dron');
-      if (!panelComandos.classList.contains('visible')) {
-        toggleConsolaDron();
-      }
+      abrirConsolaDron();
       hablarWilson("Desplegando patrullaje de dron sobre el " + nombreMovil + ", jefe.", true);
     }
 
     function ejecutarComandoGlobalDrone(accion) {
-      hablarWilson("Comando de dron en ejecución: " + accion + ", jefe.", true);
+      const accLow = String(accion || "").toLowerCase();
+      if (accLow.includes("aterrizar") || accLow.includes("retorno")) {
+        cerrarConsolaDron();
+        hablarWilson("Dron retornando a base y cerrando transmisión, jefe.", true);
+      } else {
+        abrirConsolaDron();
+        hablarWilson("Comando de dron en ejecución: " + accion + ", jefe.", true);
+      }
     }
 
     function formatearBateria(batCrudaStr) {
@@ -1405,14 +1765,25 @@
       return "100%";
     }
 
+    function cargarGeocercasIniciales() {
+      if (typeof google === 'undefined' || !google.script || !google.script.run) return;
+      google.script.run
+        .withSuccessHandler(function(zonas) {
+          geocercasActuales = Array.isArray(zonas) ? zonas : [];
+        })
+        .withFailureHandler(function() {})
+        .obtenerGeocercas();
+    }
+
     function verificarAlertasActivas() {
       if (typeof google === 'undefined' || !google.script || !google.script.run) return;
       google.script.run
         .withSuccessHandler(function(alertas) {
           const banner = document.getElementById('alerta-banner');
           const texto = document.getElementById('alerta-texto');
-          if (alertas && alertas.length > 0) {
-            const a = alertas[alertas.length - 1];
+          alertasActuales = Array.isArray(alertas) ? alertas : [];
+          if (alertasActuales.length > 0) {
+            const a = alertasActuales[alertasActuales.length - 1];
             idAlertaActiva = sanitizar(a.id);
             texto.innerHTML = '<b>' + sanitizar(a.movil) + '</b>: ' + sanitizar(a.tipo) + '<br><span style="font-size:0.65rem; font-weight:normal; opacity:0.9;">' + sanitizar(a.detalle) + '</span>';
             banner.style.display = 'flex';
@@ -1432,6 +1803,7 @@
           const banner = document.getElementById('alerta-banner');
           if (banner) banner.style.display = 'none';
           idAlertaActiva = null;
+          alertasActuales = [];
           hablarWilson("Alerta silenciada y registrada en el búnker, jefe.", true);
         })
         .desactivarAlerta(idAlertaActiva);
@@ -1451,7 +1823,6 @@
 
     function renderizarFlota(movilesRaw) {
       const listaContainer = document.getElementById('lista-moviles');
-      // Compatibilidad si la respuesta viene envuelta en objeto o directa como array
       const moviles = Array.isArray(movilesRaw) ? movilesRaw : (movilesRaw && (movilesRaw.moviles || movilesRaw.datos)) || [];
 
       if (!moviles || moviles.length === 0) {
@@ -1494,16 +1865,18 @@
         estadosPreviosMoviles[m.id] = { estado: estadoActual, velocidad: vel };
 
         const bateriaFormateada = formatearBateria(m.bateria);
+        const combustibleFormateado = formatearCombustible(m);
+        const kmMesVal = obtenerKmMesNumero(m).toFixed(1).replace('.', ',');
         const claseNeon = (estadoActual === "En movimiento") ? 'neonu-movimiento' : 'neonu-detenido';
         const nomLimpio = sanitizar(m.nombre);
         const idLimpio = sanitizar(m.id);
         const htmlEtiqueta = `
           <div class="custom-movil-label ${claseNeon}" onclick="enfocarMovilPorId('${idLimpio}')">
             <b>${nomLimpio}</b><br>
-            <span style="font-size: 10px; color: #9CA3AF;">Vel: ${vel} km/h</span>
+            <span style="font-size: 10px; color: #9CA3AF;">Vel: ${vel} km/h | ⛽ ${combustibleFormateado}</span>
           </div>
         `;
-        const customIcon = L.divIcon({ html: htmlEtiqueta, className: 'marcador-custom', iconSize: [120, 45], iconAnchor: [60, 22] });
+        const customIcon = L.divIcon({ html: htmlEtiqueta, className: 'marcador-custom', iconSize: [135, 45], iconAnchor: [67, 22] });
         
         let latSana = parseFloat(String(m.lat).replace(',','.'));
         let lngSana = parseFloat(String(m.lng).replace(',','.'));
@@ -1528,11 +1901,15 @@
         card.onclick = function() { enfocarMovil(m); };
         card.innerHTML = 
           '<div class="card-top">' +
-            '<div><div class="movil-nombre">' + nomLimpio + '</div><div class="movil-id">ID: ' + idLimpio + '</div></div>' +
+            '<div><div class="movil-nombre">' + nomLimpio + '</div><div class="movil-id">ID: ' + idLimpio + (m.zona_actual ? ' · ' + sanitizar(m.zona_actual) : '') + '</div></div>' +
             '<span class="movil-badge ' + (estadoActual === "En movimiento" ? 'badge-movimiento' : 'badge-detenido') + '">' + estadoActual + '</span>' +
           '</div>' +
           '<div class="card-body">' +
-            '<div><i class="fa-solid fa-battery-half"></i> ' + bateriaFormateada + '</div>' +
+            '<div class="card-telemetria-extra">' +
+              '<span class="telemetria-pill" title="Batería"><i class="fa-solid fa-battery-half"></i> ' + bateriaFormateada + '</span>' +
+              '<span class="telemetria-pill" style="color: #FBBF24;" title="Combustible"><i class="fa-solid fa-gas-pump"></i> ' + combustibleFormateado + '</span>' +
+              '<span class="telemetria-pill" style="color: #38BDF8;" title="Kilómetros del Mes"><i class="fa-solid fa-road"></i> ' + kmMesVal + ' km</span>' +
+            '</div>' +
             '<div class="card-vel"><i class="fa-solid fa-gauge-high"></i> ' + vel + ' <span style="font-size: 0.65rem;">KM/H</span></div>' +
           '</div>' +
           '<div class="card-acciones" onclick="event.stopPropagation()">' +
@@ -1682,6 +2059,7 @@
 
     actualizarFlota();
     verificarAlertasActivas();
+    cargarGeocercasIniciales();
     setInterval(actualizarFlota, 5000);
     setInterval(verificarAlertasActivas, 10000);
   </script>
