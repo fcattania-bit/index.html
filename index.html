@@ -4,11 +4,11 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>SISTEMA ER9 - Control de Flota y Dron</title>
-  
+
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  
+
   <style>
     :root {
       --bg-main: #0B0F19;
@@ -541,6 +541,33 @@
       background: #000;
       object-fit: cover;
     }
+    .movil-cam-fallback {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      flex: 1;
+      padding: 12px;
+      text-align: center;
+      background: #0B0F19;
+      color: var(--text-muted);
+      font-size: 0.72rem;
+    }
+    .btn-abrir-stream-ext {
+      background: var(--accent-red);
+      color: #FFF;
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
     #ruta-info-panel {
       position: absolute;
       top: 15px;
@@ -644,7 +671,7 @@
           src="https://www.youtube.com/embed/8UBstbQjySY?autoplay=1&mute=1&loop=1&playlist=8UBstbQjySY&playsinline=1&controls=0&modestbranding=1&rel=0" 
           title="Plaza Independencia de la provincia de Tucumán - vista aérea - DJI" 
           frameborder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; microphone; camera" 
           allowfullscreen>
         </iframe>
       </div>
@@ -658,6 +685,12 @@
         </div>
       </div>
       <img id="movil-cam-video" class="movil-cam-video" src="" alt="Transmisión en vivo">
+      <div id="movil-cam-fallback" class="movil-cam-fallback">
+        <span>El navegador bloqueó el stream HTTP dentro de HTTPS o la cámara no responde.</span>
+        <a id="btn-abrir-stream-ext" href="#" target="_blank" rel="noopener noreferrer" class="btn-abrir-stream-ext">
+          <i class="fa-solid fa-up-right-from-square"></i> Abrir cámara directa
+        </a>
+      </div>
     </div>
     <div id="ruta-info-panel">
       <div class="ruta-info-header">
@@ -830,7 +863,6 @@
       }
     }
 
-    // --- FUNCIONES EXPLÍCITAS DE CONSOLA Y VENTANA DE VIDEO DEL DRON ---
     function abrirConsolaDron() {
       const panelComandos = document.getElementById('panel-comandos-dron');
       const cajaCamara = document.getElementById('drone-cam-box');
@@ -869,10 +901,10 @@
       
       function pasoDelCiclo() {
         if (!cicloGrabacionActivo) return;
-        fetch('http://' + ipBase + '/settings/record?set=on').catch(e => console.log("Grabación:", e));
+        fetch('http://' + ipBase + '/settings/record?set=on', { mode: 'no-cors' }).catch(e => console.log("Grabación:", e));
         setTimeout(() => {
           if (!cicloGrabacionActivo) return;
-          fetch('http://' + ipBase + '/settings/record?set=off').catch(e => console.log("Corte:", e));
+          fetch('http://' + ipBase + '/settings/record?set=off', { mode: 'no-cors' }).catch(e => console.log("Corte:", e));
           timeoutCicloGrabacion = setTimeout(pasoDelCiclo, 5000);
         }, 10000);
       }
@@ -883,7 +915,7 @@
       cicloGrabacionActivo = false;
       clearTimeout(timeoutCicloGrabacion);
       if (ipBase) {
-        fetch('http://' + ipBase + '/settings/record?set=off').catch(e => console.log("Frenando:", e));
+        fetch('http://' + ipBase + '/settings/record?set=off', { mode: 'no-cors' }).catch(e => console.log("Frenando:", e));
       }
     }
 
@@ -893,12 +925,6 @@
         return;
       }
       let urlVideo = ipDestino.trim();
-
-      if (urlVideo.startsWith('http://') && !window.location.protocol.includes('http:')) {
-        window.open(urlVideo, '_blank');
-        hablarWilson("Abriendo transmisión externa segura para el " + nombre + ", jefe.", true);
-        return;
-      }
 
       if (!urlVideo.startsWith('http://') && !urlVideo.startsWith('https://')) {
         urlVideo = 'http://' + urlVideo;
@@ -910,8 +936,21 @@
       
       const cajaCam = document.getElementById('movil-cam-box');
       const imgVideo = document.getElementById('movil-cam-video');
+      const fallbackBox = document.getElementById('movil-cam-fallback');
+      const linkExt = document.getElementById('btn-abrir-stream-ext');
       const titulo = document.getElementById('movil-cam-titulo');
+
       titulo.innerHTML = '<i class="fa-solid fa-video"></i> VIVO: ' + sanitizar(nombre);
+      linkExt.href = urlVideo;
+
+      imgVideo.style.display = 'block';
+      fallbackBox.style.display = 'none';
+
+      imgVideo.onerror = function() {
+        imgVideo.style.display = 'none';
+        fallbackBox.style.display = 'flex';
+      };
+
       imgVideo.src = urlVideo;
       cajaCam.classList.remove('oculto');
       hablarWilson("Conectando cámara del " + nombre + ", jefe. Grabación activada.", true);
@@ -921,7 +960,11 @@
     function cerrarCamaraMovil() {
       const cajaCam = document.getElementById('movil-cam-box');
       const imgVideo = document.getElementById('movil-cam-video');
+      const fallbackBox = document.getElementById('movil-cam-fallback');
+      imgVideo.onerror = null;
       imgVideo.src = "";
+      imgVideo.style.display = 'block';
+      fallbackBox.style.display = 'none';
       cajaCam.classList.add('oculto');
       detenerCicloGrabacion(ultimaIpCamara);
       hablarWilson("Transmisión y grabación cerradas, jefe.", true);
@@ -1037,7 +1080,11 @@
       };
 
       rec.onerror = function(event) {
-        if (event.error === 'not-allowed') hablarWilson("Verifique los permisos de micrófono en el navegador, jefe.");
+        if (event.error === 'not-allowed') {
+          hablarWilson("Verifique los permisos de micrófono en el candado del navegador, jefe.");
+        } else if (event.error === 'network' || event.error === 'service-not-allowed') {
+          hablarWilson("El servicio de voz del navegador fue bloqueado por escudos o red. Puede escribir su orden en la caja de texto, jefe.");
+        }
       };
 
       rec.onend = function() {
@@ -1055,7 +1102,7 @@
         reconocimientoVoz = inicializarReconocimientoVoz();
       }
       if (!reconocimientoVoz) {
-        hablarWilson("Este navegador no soporta entrada de voz. Utilice Google Chrome, jefe.");
+        hablarWilson("Este navegador no soporta entrada de voz. Escriba su orden en la caja de consulta, jefe.");
         return;
       }
       if (escuchandoAhora) {
@@ -1077,7 +1124,6 @@
       return (!u || u.includes("?") || u.includes("usuarioParam")) ? "Gustavo Fabián" : u;
     }
 
-    // --- FORMATEADORES DE TELEMETRÍA COMPLETA DE LA PLANILLA ---
     function formatearCombustible(m) {
       let raw = m.combustible ?? m.nivel_combustible ?? m.nivelCombustible ?? m.tanque ?? "";
       let str = String(raw).trim();
@@ -1122,19 +1168,14 @@
       return obtenerKmMesNumero(m);
     }
 
-    // ==========================================================
-    // GENERADOR DE PARTE COMPLETO DE ALERTAS Y NOVEDADES EN VIVO
-    // ==========================================================
     function generarReporteNovedadesYAlertas(soloAlertasOficiales = false) {
       const bloques = [];
 
-      // 1. Alertas activas desde Historico_Alertas
       if (alertasActuales && alertasActuales.length > 0) {
         const listaAlertas = alertasActuales.map(a => a.movil + " (" + a.tipo + ": " + a.detalle + ")").join("; ");
         bloques.push("Hay " + alertasActuales.length + " alertas pendientes en el historial: " + listaAlertas + ".");
       }
 
-      // 2. Alertas registradas en la columna estado_alerta de Moviles_Flota
       const alertasEnFlota = flotaActual.filter(m => {
         const al = String(m.alerta || m.estado_alerta || "").trim().toLowerCase();
         return al && al !== "sin alertas" && al !== "normal" && al !== "undefined" && !al.includes("(leida)");
@@ -1144,7 +1185,6 @@
         bloques.push("Novedades en estado de flota: " + detalleFlota + ".");
       }
 
-      // 3. Control en tiempo real de Exceso de Velocidad (> 60 km/h)
       const enExcesoVel = flotaActual.filter(m => (parseFloat(m.velocidad) || 0) > 60);
       if (enExcesoVel.length > 0) {
         const detalleVel = enExcesoVel.map(m => m.nombre + " circulando a " + m.velocidad + " kilómetros por hora").join(", ");
@@ -1152,7 +1192,6 @@
       }
 
       if (!soloAlertasOficiales) {
-        // 4. Control en tiempo real de Combustible Bajo (<= 25%)
         const bajosComb = flotaActual.filter(m => {
           const c = obtenerNumeroCombustible(m);
           return !isNaN(c) && c <= 25;
@@ -1162,7 +1201,6 @@
           bloques.push("Alerta de combustible bajo: " + detalleComb + ".");
         }
 
-        // 5. Control en tiempo real de Batería Crítica en equipo GPS (<= 15%)
         const bajaBat = flotaActual.filter(m => {
           const b = obtenerNumeroBateria(m);
           return !isNaN(b) && b <= 15;
@@ -1306,7 +1344,6 @@
       abrirUrlExternaSegura(obtenerUrlWhatsApp(nombre, lat, lng, vel, estado));
     }
 
-    // --- DIBUJAR / OCULTAR GEOCERCAS EN EL MAPA ---
     function mostrarGeocercasEnMapa(zonas) {
       if (capaGeocercas) {
         map.removeLayer(capaGeocercas);
@@ -1328,9 +1365,6 @@
       map.fitBounds(capaGeocercas.getBounds(), { padding: [50, 50] });
     }
 
-    // ==========================================================
-    // PROCESAMIENTO CENTRAL DE COMANDOS DE VOZ Y CONSULTAS
-    // ==========================================================
     function enviarConsultaTexto() {
       const input = document.getElementById('input-consulta');
       const texto = input.value.trim();
@@ -1358,7 +1392,6 @@
       const textoLimpioLow = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
       const movilDirecto = buscarMovilEnFlota(texto);
 
-      // 0. COMANDOS DE NOVEDADES Y ALERTAS (AUDITORÍA COMPLETA DE FLOTA)
       const pideNovedades = textoLimpioLow.includes("novedad") || 
                             textoLimpioLow.includes("alerta") || 
                             textoLimpioLow.includes("problema") || 
@@ -1375,7 +1408,6 @@
         return;
       }
 
-      // 1. COMANDOS DE DRON (ABRIR / DESPEGAR / ATERRIZAR / OCULTAR)
       const mencionaDron = textoLimpioLow.includes("dron") || textoLimpioLow.includes("drone");
       const consolaDronAbierta = document.getElementById('panel-comandos-dron').classList.contains('visible');
       const pideCerrarDron = textoLimpioLow.includes("aterrizar") || 
@@ -1408,13 +1440,11 @@
         return;
       }
 
-      // 2. COMANDOS DE CÁMARA
       if (textoLimpioLow.includes("cerrar camara") || textoLimpioLow.includes("cerrar video") || textoLimpioLow.includes("ocultar camara") || textoLimpioLow.includes("quitar video")) {
         cerrarCamaraMovil();
         return;
       }
 
-      // 3. COMANDOS DE MAPA Y GEOCERCAS
       if (textoLimpioLow.includes("limpiar mapa") || textoLimpioLow.includes("borrar mapa") || textoLimpioLow.includes("sacar ruta") || textoLimpioLow.includes("cerrar ruta")) {
         limpiarRutaMapa();
         if (capaGeocercas) { map.removeLayer(capaGeocercas); capaGeocercas = null; }
@@ -1441,7 +1471,6 @@
         }
       }
 
-      // 4. COMANDOS GLOBALES DE TIPO DE VEHÍCULOS (CAMIONES VS LIVIANOS)
       if (!movilDirecto && (textoLimpioLow.includes("camion") || textoLimpioLow.includes("liviano") || textoLimpioLow.includes("tipo de vehiculo"))) {
         const camiones = flotaActual.filter(m => String(m.tipo_vehiculo || "").toLowerCase().includes("camion"));
         const livianos = flotaActual.filter(m => String(m.tipo_vehiculo || "").toLowerCase().includes("liviano"));
@@ -1449,7 +1478,6 @@
         return;
       }
 
-      // 5. COMANDOS DE KILÓMETROS (DÍA, MES Y TOTALES)
       const pideKm = textoLimpioLow.includes("kilometro") || textoLimpioLow.includes("km") || textoLimpioLow.includes("distancia") || textoLimpioLow.includes("odometro") || textoLimpioLow.includes("recorrido total");
       if (pideKm && !textoLimpioLow.includes("ruta") && !textoLimpioLow.includes("mapa")) {
         const esTotal = textoLimpioLow.includes("total") || textoLimpioLow.includes("acumulado") || textoLimpioLow.includes("lleva");
@@ -1485,7 +1513,6 @@
         return;
       }
 
-      // 6. COMANDOS DE COMBUSTIBLE
       const pideCombustible = textoLimpioLow.includes("combustible") || textoLimpioLow.includes("nafta") || textoLimpioLow.includes("gasoil") || textoLimpioLow.includes("tanque") || textoLimpioLow.includes("diesel");
       if (pideCombustible) {
         if (movilDirecto) {
@@ -1502,7 +1529,6 @@
         return;
       }
 
-      // 7. CONSULTAS SOBRE TODOS LOS DATOS DE LA PLANILLA DE UN MÓVIL ESPECÍFICO
       if (movilDirecto) {
         if (pideNovedades) {
           const alertasMovil = alertasActuales.filter(a => String(a.movil || "").toLowerCase().includes(String(movilDirecto.nombre || "").toLowerCase()));
@@ -1568,11 +1594,13 @@
           cargarRutaMovil(movilDirecto.id, movilDirecto.nombre);
           return;
         }
+
         if (textoLimpioLow.includes("camara") || textoLimpioLow.includes("vivo") || textoLimpioLow.includes("video")) {
           enfocarMovil(movilDirecto, false);
           abrirCamaraMovil(movilDirecto.nombre, movilDirecto.ip || movilDirecto.ip_privada || movilDirecto.link_trasmision);
           return;
         }
+
         if (textoLimpioLow.includes("whatsapp") || textoLimpioLow.includes("mandar")) {
           const vel = parseFloat(movilDirecto.velocidad) || 0;
           const est = (movilDirecto.estado === "En movimiento" || vel >= 3.5) ? "En movimiento" : "Detenido";
@@ -1580,6 +1608,7 @@
           hablarWilson("Preparando mensaje de WhatsApp para el " + movilDirecto.nombre + ", jefe.", true);
           return;
         }
+
         if (textoLimpioLow.includes("calle") || textoLimpioLow.includes("street") || textoLimpioLow.includes("vista")) {
           abrirStreetView(movilDirecto.lat, movilDirecto.lng);
           hablarWilson("Abriendo vista de calle para el " + movilDirecto.nombre + ", jefe.", true);
@@ -1603,7 +1632,6 @@
           return;
         }
 
-        // REPORTE FORMAL POR DEFECTO
         const vel = parseFloat(movilDirecto.velocidad) || 0;
         const estadoTxt = vel > 0 ? ("en movimiento a " + vel + " kilómetros por hora") : "detenido";
         const zonaTxt = movilDirecto.zona_actual ? (" en " + movilDirecto.zona_actual) : "";
@@ -1616,7 +1644,6 @@
         return; 
       }
 
-      // 8. SI NO COINCIDE LOCALMENTE (O PIDE HISTORIAL DE ALERTAS), CONSULTA AL SERVIDOR
       const fechaAEnviar = document.getElementById('input-fecha-filtro').value;
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
