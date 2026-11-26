@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es-AR">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>SISTEMA ER9 - Control de Flota y Dron</title>
-
+  <title>SISTEMA ER9 - Control de Flota y Dron V4</title>
+  
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+  
   <style>
     :root {
       --bg-main: #0B0F19;
@@ -25,7 +25,7 @@
       --accent-wsp: #25D366;
       --accent-drone: #F59E0B;
     }
-
+  
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
     body { 
@@ -37,9 +37,11 @@
       display: flex; 
       overflow: hidden; 
     }
+
     .mapa-modo-noche {
       filter: brightness(0.6) invert(1) contrast(3) hue-rotate(200deg) saturate(0.3) brightness(0.7);
     }
+
     #sidebar {
       width: 390px;
       height: 100vh;
@@ -50,6 +52,7 @@
       z-index: 1000;
       box-shadow: 4px 0 20px rgba(0,0,0,0.5);
     }
+
     .header-panel {
       flex-shrink: 0;
       padding: 12px 14px;
@@ -59,6 +62,7 @@
       flex-direction: column;
       gap: 8px;
     }
+
     .title-row {
       display: flex;
       justify-content: space-between;
@@ -66,12 +70,14 @@
       flex-wrap: wrap;
       gap: 8px;
     }
+
     .title-row h1 {
       font-size: 1.05rem;
       font-weight: 800;
       letter-spacing: 0.5px;
       color: var(--accent-cyan);
     }
+
     .wilson-badge {
       display: flex;
       align-items: center;
@@ -85,6 +91,7 @@
       font-weight: 700;
       cursor: pointer;
     }
+
     .wilson-dot {
       width: 6px;
       height: 6px;
@@ -93,11 +100,13 @@
       box-shadow: 0 0 6px var(--accent-wilson);
       animation: pulse 1.5s infinite;
     }
+
     @keyframes pulse {
       0% { opacity: 0.4; }
       50% { opacity: 1; }
       100% { opacity: 0.4; }
     }
+
     .caja-consulta-wilson {
       display: flex;
       align-items: center;
@@ -114,9 +123,11 @@
       outline: none;
       width: 120px;
     }
+
     .caja-consulta-wilson input::placeholder {
       color: var(--text-muted);
     }
+
     .btn-enviar-consulta {
       background: var(--accent-wilson);
       border: none;
@@ -127,10 +138,12 @@
       font-size: 0.75rem;
       transition: all 0.2s;
     }
+
     .btn-enviar-consulta:hover {
       background: #7C3AED;
       box-shadow: 0 0 8px var(--accent-wilson);
     }
+
     .btn-mic-wilson {
       background: rgba(139, 92, 246, 0.2);
       border: 1px solid var(--accent-wilson);
@@ -141,21 +154,25 @@
       font-size: 0.75rem;
       transition: all 0.2s;
     }
+
     .btn-mic-wilson:hover {
       background: var(--accent-wilson);
       color: #fff;
     }
+
     .btn-mic-wilson.escuchando {
       background: var(--accent-red);
       border-color: #FCA5A5;
       color: #FFFFFF;
       animation: latidoMic 1s infinite;
     }
+
     @keyframes latidoMic {
       0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.8); }
       70% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
       100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
     }
+
     #alerta-banner {
       display: none;
       background: linear-gradient(90deg, rgba(220, 38, 38, 0.95) 0%, rgba(185, 28, 28, 0.95) 100%);
@@ -172,10 +189,12 @@
       margin-bottom: 4px;
       animation: deslizarAbajo 0.3s ease-out;
     }
+
     @keyframes deslizarAbajo {
       from { opacity: 0; transform: translateY(-8px); }
       to { opacity: 1; transform: translateY(0); }
     }
+
     .alerta-icono-campana {
       display: flex;
       align-items: center;
@@ -185,6 +204,7 @@
       animation: repiqueCampana 1s infinite ease-in-out;
       transform-origin: top center;
     }
+
     @keyframes repiqueCampana {
       0% { transform: rotate(0); }
       15% { transform: rotate(14deg); }
@@ -194,12 +214,14 @@
       75% { transform: rotate(4deg); }
       100% { transform: rotate(0); }
     }
+
     .alerta-cuerpo {
       display: flex;
       align-items: center;
       gap: 8px;
       flex: 1;
     }
+
     .btn-desactivar-alerta {
       background: #FFFFFF;
       color: #B91C1C;
@@ -213,14 +235,17 @@
       transition: all 0.2s;
       white-space: nowrap;
     }
+
     .btn-desactivar-alerta:active {
       transform: scale(0.95);
     }
+
     .controles-superiores-row {
       display: flex;
       gap: 6px;
       align-items: center;
     }
+
     .fecha-filter-box {
       flex: 1;
       display: flex;
@@ -231,6 +256,7 @@
       border-radius: 6px;
       padding: 5px 8px;
     }
+
     .fecha-filter-box label {
       font-size: 0.68rem;
       font-weight: 700;
@@ -239,6 +265,7 @@
       align-items: center;
       gap: 4px;
     }
+
     .fecha-filter-box input[type="date"] {
       background: transparent;
       border: none;
@@ -249,6 +276,7 @@
       outline: none;
       color-scheme: dark;
     }
+
     .btn-toggle-dron-master {
       background: rgba(245, 158, 11, 0.15);
       border: 1px solid var(--accent-drone);
@@ -264,10 +292,12 @@
       transition: all 0.2s;
       white-space: nowrap;
     }
+
     .btn-toggle-dron-master.activo {
       background: var(--accent-drone);
       color: #000;
     }
+
     .drone-command-panel {
       background: rgba(245, 158, 11, 0.1);
       border: 1px solid var(--accent-drone);
@@ -278,9 +308,11 @@
       gap: 6px;
       animation: deslizarAbajo 0.2s ease-out;
     }
+
     .drone-command-panel.visible {
       display: flex;
     }
+
     .drone-command-title {
       font-size: 0.7rem;
       font-weight: 800;
@@ -290,11 +322,13 @@
       justify-content: space-between;
       text-transform: uppercase;
     }
+
     .drone-buttons-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 5px;
     }
+
     .btn-drone-cmd {
       background-color: var(--bg-card);
       border: 1px solid var(--accent-drone);
@@ -310,24 +344,29 @@
       gap: 5px;
       transition: all 0.2s;
     }
+
     .btn-drone-cmd:hover {
       background-color: var(--accent-drone);
       color: #000;
     }
+
     .stats-bar {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
       gap: 6px;
       text-align: center;
     }
+
     .stat-item {
       background-color: var(--bg-card);
       padding: 4px 2px;
       border-radius: 6px;
       border: 1px solid var(--border-color);
     }
+
     .stat-val { font-size: 0.95rem; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
     .stat-lbl { font-size: 0.6rem; color: var(--text-muted); text-transform: uppercase; }
+
     #lista-moviles {
       flex: 1 1 auto;
       overflow-y: auto !important;
@@ -340,6 +379,7 @@
       min-height: 0;
       pointer-events: auto !important;
     }
+
     .card-movil {
       background-color: var(--bg-card);
       border: 1px solid var(--border-color);
@@ -349,20 +389,24 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
-      transition: all 0.2s ease;
+      transition: border-color 0.2s ease, background-color 0.2s ease;
       flex-shrink: 0;
     }
+
     .card-movil.selected {
       border-color: var(--accent-cyan);
       background-color: #1E293B;
     }
+
     .card-top {
       display: flex;
       justify-content: space-between;
       align-items: center;
     }
+
     .movil-nombre { font-weight: 700; font-size: 0.88rem; color: #FFF; }
     .movil-id { font-size: 0.65rem; color: var(--text-muted); font-family: 'JetBrains Mono', monospace; }
+
     .movil-badge {
       font-size: 0.6rem;
       font-weight: 700;
@@ -370,8 +414,10 @@
       border-radius: 10px;
       text-transform: uppercase;
     }
+
     .badge-movimiento { background-color: rgba(16, 185, 129, 0.2); color: var(--accent-green); border: 1px solid var(--accent-green); }
     .badge-detenido { background-color: rgba(156, 163, 175, 0.2); color: var(--text-muted); border: 1px solid var(--border-color); }
+
     .card-body {
       display: flex;
       justify-content: space-between;
@@ -381,6 +427,7 @@
       flex-wrap: wrap;
       gap: 6px;
     }
+
     .card-telemetria-extra {
       display: flex;
       gap: 8px;
@@ -389,6 +436,7 @@
       font-size: 0.68rem;
       flex-wrap: wrap;
     }
+
     .telemetria-pill {
       background: rgba(11, 15, 25, 0.6);
       padding: 2px 6px;
@@ -398,17 +446,20 @@
       align-items: center;
       gap: 4px;
     }
+
     .card-vel {
       font-family: 'JetBrains Mono', monospace;
       font-weight: 700;
       font-size: 0.88rem;
       color: var(--text-main);
     }
+
     .card-acciones {
       display: flex;
       gap: 4px;
       margin-top: 4px;
     }
+
     .btn-accion {
       flex: 1;
       display: flex;
@@ -423,15 +474,17 @@
       text-decoration: none;
       color: #FFFFFF;
       cursor: pointer;
-      transition: all 0.2s ease;
     }
+
     .btn-street { background-color: var(--accent-maps); }
     .btn-wsp { background-color: var(--accent-wsp); }
     .btn-ruta { background-color: var(--accent-wilson); }
     .btn-drone { background-color: var(--accent-drone); color: #000; }
     .btn-cam { background-color: var(--accent-red); color: #FFF; }
-    .btn-cam:hover { background-color: #DC2626; box-shadow: 0 0 8px rgba(239, 68, 68, 0.6); }
+    .btn-cam:hover { background-color: #DC2626; }
+
     #map { flex: 1; height: 100%; width: 100%; background-color: #0b0f19; position: relative; }
+
     .custom-movil-label {
       background: rgba(17, 24, 39, 0.95);
       border-radius: 6px;
@@ -444,10 +497,10 @@
       user-select: none;
       cursor: pointer;
     }
-    .neonu-detenido { box-shadow: 0 0 8px rgba(255, 165, 0, 0.7); border: 1.5px solid #ffa500; }
-    .neonu-movimiento { box-shadow: 0 0 10px rgba(16, 185, 129, 0.9); border: 1.5px solid var(--accent-green); }
 
-    /* CONTENEDOR DE VIDEO DEL DRON ENCUADRADO 16:9 */
+    .neonu-detenido { box-shadow: 0 0 6px rgba(255, 165, 0, 0.7); border: 1.5px solid #ffa500; }
+    .neonu-movimiento { box-shadow: 0 0 8px rgba(16, 185, 129, 0.9); border: 1.5px solid var(--accent-green); }
+  
     .drone-cam-container {
       position: absolute;
       bottom: 20px;
@@ -462,11 +515,12 @@
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.75);
       display: flex;
       flex-direction: column;
-      transition: all 0.3s ease;
     }
+
     .drone-cam-container.oculto {
       display: none !important;
     }
+
     .drone-cam-header {
       flex-shrink: 0;
       background: rgba(245, 158, 11, 0.25);
@@ -479,6 +533,7 @@
       align-items: center;
       border-bottom: 1px solid var(--border-color);
     }
+
     .drone-video-wrapper {
       position: relative;
       width: 100%;
@@ -486,6 +541,7 @@
       background: #000;
       overflow: hidden;
     }
+
     .drone-cam-video {
       position: absolute;
       top: 0;
@@ -496,7 +552,7 @@
       border: none;
       object-fit: cover;
     }
-
+  
     .movil-cam-container {
       position: absolute;
       bottom: 20px;
@@ -511,11 +567,12 @@
       box-shadow: 0 4px 20px rgba(239, 68, 68, 0.4);
       display: flex;
       flex-direction: column;
-      transition: all 0.3s ease;
     }
+
     .movil-cam-container.oculto {
       display: none !important;
     }
+
     .movil-cam-header {
       flex-shrink: 0;
       background: rgba(239, 68, 68, 0.2);
@@ -528,6 +585,7 @@
       align-items: center;
       border-bottom: 1px solid var(--border-color);
     }
+
     .movil-cam-header .btn-cerrar-cam {
       background: transparent;
       border: none;
@@ -535,12 +593,14 @@
       cursor: pointer;
       font-size: 0.85rem;
     }
+
     .movil-cam-video {
       width: 100%;
       flex: 1;
       background: #000;
       object-fit: cover;
     }
+
     .movil-cam-fallback {
       display: none;
       flex-direction: column;
@@ -554,6 +614,7 @@
       color: var(--text-muted);
       font-size: 0.72rem;
     }
+
     .btn-abrir-stream-ext {
       background: var(--accent-red);
       color: #FFF;
@@ -568,6 +629,7 @@
       align-items: center;
       gap: 6px;
     }
+
     #ruta-info-panel {
       position: absolute;
       top: 15px;
@@ -583,6 +645,7 @@
       gap: 6px;
       max-width: 300px;
     }
+
     .ruta-info-header {
       display: flex;
       justify-content: space-between;
@@ -591,6 +654,7 @@
       font-weight: 800;
       color: var(--accent-cyan);
     }
+
     .btn-cerrar-ruta {
       background: transparent;
       border: none;
@@ -598,23 +662,26 @@
       cursor: pointer;
       font-size: 0.9rem;
     }
+
     .leyenda-dias {
       display: flex;
       flex-direction: column;
       gap: 4px;
       font-size: 0.7rem;
     }
+
     .item-leyenda-dia {
       display: flex;
       align-items: center;
       gap: 8px;
     }
+
     .color-dot-leyenda {
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      box-shadow: 0 0 6px currentColor;
     }
+
     @media (max-width: 768px) {
       body { 
         flex-direction: column; 
@@ -669,18 +736,19 @@
       <div class="drone-video-wrapper">
         <iframe class="drone-cam-video" 
           src="https://www.youtube.com/embed/8UBstbQjySY?autoplay=1&mute=1&loop=1&playlist=8UBstbQjySY&playsinline=1&controls=0&modestbranding=1&rel=0" 
-          title="Plaza Independencia de la provincia de Tucumán - vista aérea - DJI" 
+          title="Vista aérea - Dron ER9" 
           frameborder="0" 
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; microphone; camera" 
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
           allowfullscreen>
         </iframe>
       </div>
     </div>
+
     <div id="movil-cam-box" class="movil-cam-container oculto">
       <div class="movil-cam-header">
         <span id="movil-cam-titulo"><i class="fa-solid fa-video"></i> CÁMARA EN VIVO</span>
         <div style="display: flex; align-items: center; gap: 8px;">
-          <span style="font-size: 0.55rem; color: #EF4444;"><i class="fa-solid fa-circle"></i> REC</span>
+          <span id="movil-cam-rec-badge" style="font-size: 0.55rem; color: #EF4444;"><i class="fa-solid fa-circle"></i> REC</span>
           <button class="btn-cerrar-cam" onclick="cerrarCamaraMovil()" title="Cerrar Transmisión"><i class="fa-solid fa-xmark"></i></button>
         </div>
       </div>
@@ -692,6 +760,7 @@
         </a>
       </div>
     </div>
+
     <div id="ruta-info-panel">
       <div class="ruta-info-header">
         <span id="ruta-titulo-movil">📍 Recorrido Trazado</span>
@@ -700,6 +769,7 @@
       <div id="ruta-leyenda-dias" class="leyenda-dias"></div>
     </div>
   </div>
+
   <div id="sidebar">
     <div class="header-panel">
       <div class="title-row">
@@ -720,6 +790,7 @@
           </div>
         </div>
       </div>
+
       <div id="alerta-banner">
         <div class="alerta-cuerpo">
           <div class="alerta-icono-campana">
@@ -729,6 +800,7 @@
         </div>
         <button class="btn-desactivar-alerta" id="btn-silenciar" onclick="silenciarAlertaActual()">DESACTIVAR</button>
       </div>
+
       <div class="controles-superiores-row">
         <div class="fecha-filter-box">
           <label for="input-fecha-filtro"><i class="fa-regular fa-calendar-days"></i> Día:</label>
@@ -738,6 +810,7 @@
           <i class="fa-solid fa-helicopter"></i> DRON
         </button>
       </div>
+
       <div class="drone-command-panel" id="panel-comandos-dron">
         <div class="drone-command-title">
           <span><i class="fa-solid fa-helicopter"></i> Comandos Dron ER9</span>
@@ -752,6 +825,7 @@
           <button class="btn-drone-cmd" onclick="ejecutarComandoGlobalDrone('Retorno a Base')"><i class="fa-solid fa-house-chimney"></i> RTB / Aterrizar</button>
         </div>
       </div>
+
       <div class="stats-bar">
         <div class="stat-item">
           <div class="stat-val" id="total-activos" style="color: var(--accent-cyan)">0</div>
@@ -767,13 +841,14 @@
         </div>
       </div>
     </div>
+
     <div id="lista-moviles">
       <div style="text-align: center; color: var(--text-muted); padding: 15px; font-size: 0.8rem;">
         <i class="fa-solid fa-satellite fa-spin"></i> Conectando al búnker central...
       </div>
     </div>
   </div>
-
+  
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     const API_URL = "https://script.google.com/macros/s/AKfycbyAAI6JpVC7XY2keuLkApXApDVSETnKf425Mn44UC6_Qj5liBi7IcpJO4R-Fg6RHSBc/exec";
@@ -801,23 +876,23 @@
       };
     }
     window.google = { script: { run: crearRunner(null, null) } };
-
+  
     function sanitizar(texto) {
       const div = document.createElement('div');
       div.textContent = texto;
       return div.innerHTML;
     }
-
+  
     const USUARIO_DEMO = "Gustavo Fabián";
     const capaDia = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' });
     const capaNoche = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, className: 'mapa-modo-noche', attribution: '&copy; OpenStreetMap' });
     const capaSatelite = L.tileLayer('https://mt1.google.com/vt/lyrs=y&x={x}&y={y}&z={z}', { maxZoom: 20, subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], attribution: 'Google Satellite' });
     
-    const map = L.map('map', { zoomControl: false, layers: [capaSatelite] }).setView([-26.837, -65.200], 17);
+    const map = L.map('map', { zoomControl: false, layers: [capaSatelite], preferCanvas: true }).setView([-26.837, -65.200], 17);
     L.control.zoom({ position: 'topright' }).addTo(map);
     const baseLayers = { "🛰️ Satelital": capaSatelite, "☀️ Día": capaDia, "🌙 Noche": capaNoche };
     L.control.layers(baseLayers, null, { position: 'topright', collapsed: true }).addTo(map);
-
+  
     const sidebarEl = document.getElementById('sidebar');
     const listaMovilesEl = document.getElementById('lista-moviles');
     if (sidebarEl) {
@@ -828,10 +903,10 @@
       L.DomEvent.disableClickPropagation(listaMovilesEl);
       L.DomEvent.disableScrollPropagation(listaMovilesEl);
     }
-
+  
     setTimeout(function() { map.invalidateSize(); }, 400);
     window.addEventListener('resize', function() { map.invalidateSize(); });
-
+  
     const marcadores = {};
     let flotaActual = [];
     let alertasActuales = [];
@@ -844,8 +919,9 @@
     let movilRutaActiva = null;
     let idAlertaActiva = null;
     let esperandoFechaParaMovil = null;
+    let firmaFlotaAnterior = "";
     window.locucionActual = null;
-
+  
     const PALETA_NEON = [
       { glow: '#00F3FF', core: '#FFFFFF', nombre: 'Cyan Neón' },
       { glow: '#FF007F', core: '#FFFFFF', nombre: 'Magenta Neón' },
@@ -853,16 +929,16 @@
       { glow: '#FF9900', core: '#FFFFFF', nombre: 'Naranja Neón' },
       { glow: '#A855F7', core: '#FFFFFF', nombre: 'Violeta Neón' }
     ];
-
+  
     const hoyIso = new Date().toLocaleDateString('en-CA');
     document.getElementById('input-fecha-filtro').value = hoyIso;
-
+  
     function alCambiarFechaFiltro() {
       if (movilRutaActiva) {
         cargarRutaMovil(movilRutaActiva.id, movilRutaActiva.nombre);
       }
     }
-
+  
     function abrirConsolaDron() {
       const panelComandos = document.getElementById('panel-comandos-dron');
       const cajaCamara = document.getElementById('drone-cam-box');
@@ -871,7 +947,7 @@
       if (cajaCamara) cajaCamara.classList.remove('oculto');
       if (btnMaster) btnMaster.classList.add('activo');
     }
-
+  
     function cerrarConsolaDron() {
       const panelComandos = document.getElementById('panel-comandos-dron');
       const cajaCamara = document.getElementById('drone-cam-box');
@@ -880,7 +956,7 @@
       if (cajaCamara) cajaCamara.classList.add('oculto');
       if (btnMaster) btnMaster.classList.remove('activo');
     }
-
+  
     function toggleConsolaDron() {
       const panelComandos = document.getElementById('panel-comandos-dron');
       const estaAbierto = panelComandos && panelComandos.classList.contains('visible');
@@ -890,73 +966,107 @@
         abrirConsolaDron();
       }
     }
-
+  
+    // =================================================================
+    // CÁMARAS: IP WEBCAM (CON CICLO 12s/5s + SILENCIO) Y VLC/RTSP FIJA
+    // =================================================================
     let cicloGrabacionActivo = false;
-    let timeoutCicloGrabacion;
+    let timeoutCicloGrabacion = null;
     let ultimaIpCamara = '';
+    let esIpWebcamActual = false;
 
+    function esStreamIpWebcam(ipCruda) {
+      const s = String(ipCruda || "").toLowerCase().trim();
+      if (!s || s.startsWith("rtsp://") || s.includes(".m3u8") || s.includes(".mp4") || s.includes("/stream")) {
+        return false;
+      }
+      // Si es IP:puerto pelada (ej: 192.168.100.119:8080) o termina en /video, es IP Webcam
+      return /^https?:\/\/[^\/]+(\/video)?\/?$/.test(s) || /^[^\/:]+:\d+(\/video)?\/?$/.test(s);
+    }
+  
     function iniciarCicloGrabacion(ipBase) {
-      if (cicloGrabacionActivo) return;
+      if (cicloGrabacionActivo || !ipBase) return;
       cicloGrabacionActivo = true;
       
+      // Asegurar silencio en IP Webcam al iniciar transmisión
+      fetch('http://' + ipBase + '/settings/audio?set=off', { mode: 'no-cors' }).catch(() => {});
+
       function pasoDelCiclo() {
         if (!cicloGrabacionActivo) return;
-        fetch('http://' + ipBase + '/settings/record?set=on', { mode: 'no-cors' }).catch(e => console.log("Grabación:", e));
-        setTimeout(() => {
+        // Graba 12 segundos
+        fetch('http://' + ipBase + '/settings/record?set=on', { mode: 'no-cors' }).catch(() => {});
+        timeoutCicloGrabacion = setTimeout(() => {
           if (!cicloGrabacionActivo) return;
-          fetch('http://' + ipBase + '/settings/record?set=off', { mode: 'no-cors' }).catch(e => console.log("Corte:", e));
+          // Corta y pausa 5 segundos para cuidar datos y batería
+          fetch('http://' + ipBase + '/settings/record?set=off', { mode: 'no-cors' }).catch(() => {});
           timeoutCicloGrabacion = setTimeout(pasoDelCiclo, 5000);
-        }, 10000);
+        }, 12000);
       }
       pasoDelCiclo();
     }
-
+  
     function detenerCicloGrabacion(ipBase) {
       cicloGrabacionActivo = false;
       clearTimeout(timeoutCicloGrabacion);
-      if (ipBase) {
-        fetch('http://' + ipBase + '/settings/record?set=off', { mode: 'no-cors' }).catch(e => console.log("Frenando:", e));
+      timeoutCicloGrabacion = null;
+      if (ipBase && esIpWebcamActual) {
+        fetch('http://' + ipBase + '/settings/record?set=off', { mode: 'no-cors' }).catch(() => {});
       }
     }
-
+  
     function abrirCamaraMovil(nombre, ipDestino) {
-      if (!ipDestino || ipDestino === "undefined" || ipDestino.trim() === "") {
-        hablarWilson("El móvil " + nombre + " no posee dirección IP configurada en el sistema, jefe.", true);
+      if (!ipDestino || ipDestino === "undefined" || ipDestino.trim() === "" || ipDestino.toLowerCase().includes("transmisión en vivo")) {
+        hablarWilson("El móvil " + nombre + " no tiene dirección de cámara configurada en la planilla, jefe.", true);
         return;
       }
-      let urlVideo = ipDestino.trim();
 
-      if (!urlVideo.startsWith('http://') && !urlVideo.startsWith('https://')) {
+      detenerCicloGrabacion(ultimaIpCamara);
+
+      let rawUrl = ipDestino.trim();
+      esIpWebcamActual = esStreamIpWebcam(rawUrl);
+      let urlVideo = rawUrl;
+
+      if (!urlVideo.startsWith('http://') && !urlVideo.startsWith('https://') && !urlVideo.startsWith('rtsp://')) {
         urlVideo = 'http://' + urlVideo;
       }
-      if (!urlVideo.includes('/video')) {
+
+      // Solo agregamos /video si es un celular con IP Webcam sin ruta definida
+      if (esIpWebcamActual && !urlVideo.includes('/video')) {
         urlVideo = urlVideo.replace(/\/+$/, '') + '/video';
       }
-      ultimaIpCamara = ipDestino.trim().replace(/^https?:\/\//, '').replace(/\/video\/?$/, '').replace(/\/$/, '');
+
+      ultimaIpCamara = urlVideo.replace(/^https?:\/\//, '').replace(/\/video\/?$/, '').replace(/\/$/, '');
       
       const cajaCam = document.getElementById('movil-cam-box');
       const imgVideo = document.getElementById('movil-cam-video');
       const fallbackBox = document.getElementById('movil-cam-fallback');
       const linkExt = document.getElementById('btn-abrir-stream-ext');
       const titulo = document.getElementById('movil-cam-titulo');
-
+      const recBadge = document.getElementById('movil-cam-rec-badge');
+  
       titulo.innerHTML = '<i class="fa-solid fa-video"></i> VIVO: ' + sanitizar(nombre);
       linkExt.href = urlVideo;
-
+      if (recBadge) recBadge.style.display = esIpWebcamActual ? 'inline' : 'none';
+  
       imgVideo.style.display = 'block';
       fallbackBox.style.display = 'none';
-
+  
       imgVideo.onerror = function() {
         imgVideo.style.display = 'none';
         fallbackBox.style.display = 'flex';
       };
-
+  
       imgVideo.src = urlVideo;
       cajaCam.classList.remove('oculto');
-      hablarWilson("Conectando cámara del " + nombre + ", jefe. Grabación activada.", true);
-      iniciarCicloGrabacion(ultimaIpCamara);
-    }
 
+      if (esIpWebcamActual) {
+        hablarWilson("Conectando cámara silenciosa del " + nombre + ", jefe. Grabación en intervalos activada.", true);
+        iniciarCicloGrabacion(ultimaIpCamara);
+      } else {
+        hablarWilson("Conectando señal fija de " + nombre + ", jefe.", true);
+      }
+    }
+  
     function cerrarCamaraMovil() {
       const cajaCam = document.getElementById('movil-cam-box');
       const imgVideo = document.getElementById('movil-cam-video');
@@ -967,26 +1077,59 @@
       fallbackBox.style.display = 'none';
       cajaCam.classList.add('oculto');
       detenerCicloGrabacion(ultimaIpCamara);
-      hablarWilson("Transmisión y grabación cerradas, jefe.", true);
+      hablarWilson("Transmisión cerrada, jefe.", true);
     }
-
+  
+    // =================================================================
+    // SÍNTESIS Y RECONOCIMIENTO DE VOZ OPTIMIZADO PARA ESPAÑOL ARGENTINO
+    // =================================================================
     let vocesCargadas = [];
+    let vozArgentinaElegida = null;
     let reconocimientoVoz = null;
     let escuchandoAhora = false;
     let timerNegativaPendiente = null;
     let ultimaAccionExitosaTs = 0;
+  
+    function seleccionarMejorVozArgentina(lista) {
+      if (!lista || lista.length === 0) return null;
+      // 1. Prioridad absoluta: Español de Argentina (es-AR o es_AR)
+      let ar = lista.filter(v => {
+        const l = String(v.lang || "").toLowerCase().replace('_', '-');
+        return l === 'es-ar' || l.startsWith('es-ar');
+      });
+      if (ar.length > 0) {
+        return ar.find(v => v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('tomas') || v.name.toLowerCase().includes('male')) || ar[0];
+      }
+      // 2. Segunda opción: Español Latinoamérica (es-419, es-UY, es-MX, es-US) evitando es-ES (España)
+      let latam = lista.filter(v => {
+        const l = String(v.lang || "").toLowerCase().replace('_', '-');
+        return l.startsWith('es-') && l !== 'es-es';
+      });
+      if (latam.length > 0) {
+        return latam.find(v => v.name.toLowerCase().includes('google')) || latam[0];
+      }
+      // 3. Cualquier voz en español
+      return lista.find(v => String(v.lang || "").toLowerCase().startsWith('es')) || null;
+    }
 
     function cargarVocesDisponibles() {
       if ('speechSynthesis' in window) {
-        vocesCargadas = window.speechSynthesis.getVoices();
+        const lista = window.speechSynthesis.getVoices();
+        if (lista && lista.length > 0) {
+          vocesCargadas = lista;
+          vozArgentinaElegida = seleccionarMejorVozArgentina(vocesCargadas);
+        }
       }
     }
     
     if ('speechSynthesis' in window) {
       cargarVocesDisponibles();
       window.speechSynthesis.onvoiceschanged = cargarVocesDisponibles;
+      // Reintento temprano por si Android/Chromium demora en cargar las voces
+      setTimeout(cargarVocesDisponibles, 300);
+      setTimeout(cargarVocesDisponibles, 1200);
     }
-
+  
     function esFraseNegativa(texto) {
       const t = String(texto || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       return t.includes("no encontr") ||
@@ -997,32 +1140,34 @@
              t.includes("no pude") ||
              t.includes("decime bien");
     }
-
+  
     function ejecutarLocucion(textoLimpio) {
       if (!('speechSynthesis' in window)) return;
       if (typeof reconocimientoVoz !== 'undefined' && reconocimientoVoz && escuchandoAhora) {
         try { reconocimientoVoz.stop(); } catch(e){}
       }
+      if (!vozArgentinaElegida) cargarVocesDisponibles();
       window.speechSynthesis.cancel();
+
       const textoLow = textoLimpio.toLowerCase();
       if (textoLow.includes("object") || textoLow.includes("undefined") || textoLimpio.length < 2) {
         textoLimpio = "Entendido, jefe.";
       }
+
       setTimeout(() => {
         window.locucionActual = new SpeechSynthesisUtterance(textoLimpio);
         window.locucionActual.lang = 'es-AR';
-        window.locucionActual.rate = 1.0; 
+        window.locucionActual.rate = 1.02;
+        window.locucionActual.pitch = 0.96;
         
-        if (vocesCargadas.length > 0) {
-          let vozAr = vocesCargadas.find(v => v.lang.includes('es-AR') && v.name.toLowerCase().includes('male'));
-          if (!vozAr) vozAr = vocesCargadas.find(v => v.lang.includes('es-AR'));
-          if (vozAr) window.locucionActual.voice = vozAr;
+        if (vozArgentinaElegida) {
+          window.locucionActual.voice = vozArgentinaElegida;
         }
         
         window.speechSynthesis.speak(window.locucionActual);
-      }, 80);
+      }, 90);
     }
-
+  
     function hablarWilson(textoOriginal, esAccionExitosa = false) {
       if (!('speechSynthesis' in window)) return;
       let textoLimpio = String(textoOriginal || "").replace(/[{}"'\n\r\[\]]/g, " ").trim();
@@ -1049,7 +1194,7 @@
       }
       ejecutarLocucion(textoLimpio);
     }
-
+  
     function inicializarReconocimientoVoz() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) return null;
@@ -1058,7 +1203,7 @@
       rec.continuous = false;
       rec.interimResults = false;
       rec.maxAlternatives = 1;
-
+  
       rec.onstart = function() {
         escuchandoAhora = true;
         const btnMic = document.getElementById('btn-mic-wilson');
@@ -1066,7 +1211,7 @@
         if (btnMic) btnMic.classList.add('escuchando');
         if (input) input.placeholder = "Escuchando su orden, jefe...";
       };
-
+  
       rec.onresult = function(event) {
         const lastIdx = event.results.length - 1;
         const transcripcion = String(event.results[lastIdx][0].transcript || "")
@@ -1078,15 +1223,15 @@
         if (input) input.value = transcripcion;
         setTimeout(enviarConsultaTexto, 100);
       };
-
+  
       rec.onerror = function(event) {
         if (event.error === 'not-allowed') {
-          hablarWilson("Verifique los permisos de micrófono en el candado del navegador, jefe.");
+          hablarWilson("Verifique los permisos de micrófono en el navegador, jefe.");
         } else if (event.error === 'network' || event.error === 'service-not-allowed') {
-          hablarWilson("El servicio de voz del navegador fue bloqueado por escudos o red. Puede escribir su orden en la caja de texto, jefe.");
+          hablarWilson("El servicio de voz fue bloqueado por la red o el navegador. Puede escribir su orden en la caja de texto, jefe.");
         }
       };
-
+  
       rec.onend = function() {
         escuchandoAhora = false;
         const btnMic = document.getElementById('btn-mic-wilson');
@@ -1096,7 +1241,7 @@
       };
       return rec;
     }
-
+  
     function toggleMicrofonoWilson() {
       if (!reconocimientoVoz) {
         reconocimientoVoz = inicializarReconocimientoVoz();
@@ -1118,12 +1263,12 @@
         }
       }
     }
-
+  
     function obtenerNombreUsuarioReal() {
       let u = String(USUARIO_DEMO || "").trim();
       return (!u || u.includes("?") || u.includes("usuarioParam")) ? "Gustavo Fabián" : u;
     }
-
+  
     function formatearCombustible(m) {
       let raw = m.combustible ?? m.nivel_combustible ?? m.nivelCombustible ?? m.tanque ?? "";
       let str = String(raw).trim();
@@ -1134,31 +1279,31 @@
       if (val > 0 && val <= 1) return Math.round(val * 100) + "%";
       return Math.round(val) + "%";
     }
-
+  
     function obtenerNumeroCombustible(m) {
       const str = formatearCombustible(m);
       if (str === "N/D") return NaN;
       return parseFloat(str.replace('%', ''));
     }
-
+  
     function obtenerNumeroBateria(m) {
       const str = formatearBateria(m.bateria);
       if (!str || str === "N/D") return NaN;
       return parseFloat(str.replace('%', ''));
     }
-
+  
     function obtenerKmDiaNumero(m) {
       let raw = m.km_dia ?? m.kmDia ?? 0;
       let val = parseFloat(String(raw).replace(',', '.'));
       return isNaN(val) ? 0 : val;
     }
-
+  
     function obtenerKmMesNumero(m) {
       let raw = m.kilometro_mes ?? m.kilometros_mes ?? m.km_mes ?? m.kmMes ?? 0;
       let val = parseFloat(String(raw).replace(',', '.'));
       return isNaN(val) ? 0 : val;
     }
-
+  
     function obtenerKmTotalesNumero(m) {
       let raw = m.kilometros_totales ?? m.km_totales ?? m.km_total ?? m.odometro ?? m.kmTotales;
       if (raw !== undefined && raw !== null && String(raw).trim() !== "") {
@@ -1167,15 +1312,15 @@
       }
       return obtenerKmMesNumero(m);
     }
-
+  
     function generarReporteNovedadesYAlertas(soloAlertasOficiales = false) {
       const bloques = [];
-
+  
       if (alertasActuales && alertasActuales.length > 0) {
         const listaAlertas = alertasActuales.map(a => a.movil + " (" + a.tipo + ": " + a.detalle + ")").join("; ");
         bloques.push("Hay " + alertasActuales.length + " alertas pendientes en el historial: " + listaAlertas + ".");
       }
-
+  
       const alertasEnFlota = flotaActual.filter(m => {
         const al = String(m.alerta || m.estado_alerta || "").trim().toLowerCase();
         return al && al !== "sin alertas" && al !== "normal" && al !== "undefined" && !al.includes("(leida)");
@@ -1184,13 +1329,13 @@
         const detalleFlota = alertasEnFlota.map(m => m.nombre + " con " + (m.alerta || m.estado_alerta)).join(", ");
         bloques.push("Novedades en estado de flota: " + detalleFlota + ".");
       }
-
+  
       const enExcesoVel = flotaActual.filter(m => (parseFloat(m.velocidad) || 0) > 60);
       if (enExcesoVel.length > 0) {
         const detalleVel = enExcesoVel.map(m => m.nombre + " circulando a " + m.velocidad + " kilómetros por hora").join(", ");
         bloques.push("Atención por exceso de velocidad: " + detalleVel + ".");
       }
-
+  
       if (!soloAlertasOficiales) {
         const bajosComb = flotaActual.filter(m => {
           const c = obtenerNumeroCombustible(m);
@@ -1200,7 +1345,7 @@
           const detalleComb = bajosComb.map(m => m.nombre + " al " + formatearCombustible(m)).join(", ");
           bloques.push("Alerta de combustible bajo: " + detalleComb + ".");
         }
-
+  
         const bajaBat = flotaActual.filter(m => {
           const b = obtenerNumeroBateria(m);
           return !isNaN(b) && b <= 15;
@@ -1210,16 +1355,16 @@
           bloques.push("Batería crítica de rastreo en: " + detalleBat + ".");
         }
       }
-
+  
       if (bloques.length === 0) {
         return soloAlertasOficiales
           ? "Sin alertas operativas pendientes en el historial en este momento, jefe."
           : "Sin novedades ni alertas críticas en la flota, jefe. Niveles de combustible, velocidades y geocercas dentro de los parámetros normales.";
       }
-
+  
       return "Parte de novedades y alertas, jefe: " + bloques.join(" ");
     }
-
+  
     function forzarReporteWilson() {
       const nombreUsuario = obtenerNombreUsuarioReal();
       const enMoviles = flotaActual.filter(function(m) { 
@@ -1233,11 +1378,11 @@
       } else {
         detalleMarcha = "Toda la flota se encuentra detenida.";
       }
-
+  
       const novedades = generarReporteNovedadesYAlertas(false);
       hablarWilson("Reporte Búnker ER9 para " + nombreUsuario + ". " + detalleMarcha + " " + novedades, true);
     }
-
+  
     function parsearFechaNatural(texto) {
       const t = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
       const d = new Date();
@@ -1257,7 +1402,7 @@
       }
       return null;
     }
-
+  
     function buscarMovilEnFlota(frase) {
       if (!frase || !flotaActual || flotaActual.length === 0) return null;
       
@@ -1267,7 +1412,7 @@
         .replace(/[^\w\s]/gi, ' ')
         .replace(/\b0+(\d+)\b/g, '$1')
         .trim();
-
+  
       const numMap = {
         "uno":"1", "una":"1", "primero":"1", "i":"1",
         "dos":"2", "do":"2", "to":"2", "segundo":"2", "ii":"2",
@@ -1280,11 +1425,11 @@
         "nueve":"9", "noveno":"9", "ix":"9",
         "diez":"10", "decimo":"10", "x":"10"
       };
-
+  
       for (let w in numMap) {
         limpio = limpio.replace(new RegExp(`\\b${w}\\b`, "g"), numMap[w]);
       }
-
+  
       let matchNum = limpio.match(/\d+/);
       if (matchNum) {
         let numHab = matchNum[0];
@@ -1301,7 +1446,7 @@
         let i = String(m.id).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s]/gi, '').trim();
         return (n && limpio.includes(n)) || (i && limpio.includes(i)) || n === limpio;
       });
-
+  
       if (encontrado) return encontrado;
       if (limpio.includes("azul")) return flotaActual.find(m => String(m.id).includes("24848479") || String(m.nombre).toLowerCase().includes("azul"));
       if (limpio.includes("blanco")) return flotaActual.find(m => String(m.id).includes("47961388") || String(m.nombre).toLowerCase().includes("blanco"));
@@ -1310,7 +1455,7 @@
       if (limpio.includes("udl")) return flotaActual.find(m => String(m.id).toLowerCase().includes("udl") || String(m.nombre).toLowerCase().includes("udl"));
       return null;
     }
-
+  
     function obtenerUrlStreetView(lat, lng) {
       const latNum = parseFloat(String(lat).replace(',', '.'));
       const lngNum = parseFloat(String(lng).replace(',', '.'));
@@ -1324,7 +1469,7 @@
       const msj = "📍 *Ubicación de " + nombre + "*\nEstado: " + estado + "\nVelocidad: " + vel + " km/h\nMaps: " + mapsUrl;
       return "https://api.whatsapp.com/send?text=" + encodeURIComponent(msj);
     }
-
+  
     function abrirUrlExternaSegura(url) {
       if (!url || url.includes("NaN")) return;
       const link = document.createElement('a');
@@ -1335,15 +1480,15 @@
       link.click();
       document.body.removeChild(link);
     }
-
+  
     function abrirStreetView(lat, lng) {
       abrirUrlExternaSegura(obtenerUrlStreetView(lat, lng));
     }
-
+  
     function abrirWhatsApp(nombre, lat, lng, vel, estado) {
       abrirUrlExternaSegura(obtenerUrlWhatsApp(nombre, lat, lng, vel, estado));
     }
-
+  
     function mostrarGeocercasEnMapa(zonas) {
       if (capaGeocercas) {
         map.removeLayer(capaGeocercas);
@@ -1364,7 +1509,7 @@
       capaGeocercas.addTo(map);
       map.fitBounds(capaGeocercas.getBounds(), { padding: [50, 50] });
     }
-
+  
     function enviarConsultaTexto() {
       const input = document.getElementById('input-consulta');
       const texto = input.value.trim();
@@ -1374,7 +1519,7 @@
         return;
       }
       input.value = '';
-
+  
       if (esperandoFechaParaMovil) {
         const fechaDetectada = parsearFechaNatural(texto) || document.getElementById('input-fecha-filtro').value;
         document.getElementById('input-fecha-filtro').value = fechaDetectada;
@@ -1383,31 +1528,31 @@
         cargarRutaMovil(movilTarget.id, movilTarget.nombre);
         return;
       }
-
+  
       const fechaEnComando = parsearFechaNatural(texto);
       if (fechaEnComando) {
         document.getElementById('input-fecha-filtro').value = fechaEnComando;
       }
-
+  
       const textoLimpioLow = texto.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
       const movilDirecto = buscarMovilEnFlota(texto);
-
+  
       const pideNovedades = textoLimpioLow.includes("novedad") || 
                             textoLimpioLow.includes("alerta") || 
                             textoLimpioLow.includes("problema") || 
                             textoLimpioLow.includes("incidente") || 
                             textoLimpioLow.includes("que paso") || 
                             textoLimpioLow.includes("como esta todo");
-
+  
       const pideHistorialAlertas = textoLimpioLow.includes("historial de alerta") || textoLimpioLow.includes("ultimas alerta") || textoLimpioLow.includes("alertas leidas") || textoLimpioLow.includes("registro de alerta");
-
+  
       if (pideNovedades && !movilDirecto && !pideHistorialAlertas) {
         verificarAlertasActivas();
         const reporteNovedades = generarReporteNovedadesYAlertas(false);
         hablarWilson(reporteNovedades, true);
         return;
       }
-
+  
       const mencionaDron = textoLimpioLow.includes("dron") || textoLimpioLow.includes("drone");
       const consolaDronAbierta = document.getElementById('panel-comandos-dron').classList.contains('visible');
       const pideCerrarDron = textoLimpioLow.includes("aterrizar") || 
@@ -1417,18 +1562,18 @@
                              textoLimpioLow.includes("cerrar dron") || 
                              textoLimpioLow.includes("guardar dron") || 
                              (textoLimpioLow.includes("ocultar") && (mencionaDron || consolaDronAbierta));
-
+  
       const pideAbrirDron = mencionaDron || 
                             textoLimpioLow.includes("despegar") || 
                             textoLimpioLow.includes("patrullar") || 
                             textoLimpioLow.includes("orbitar");
-
+  
       if (pideCerrarDron) {
         cerrarConsolaDron();
         hablarWilson("Dron retornando a base. Ventana de video oculta, jefe.", true);
         return;
       }
-
+  
       if (pideAbrirDron) {
         abrirConsolaDron();
         if (movilDirecto) {
@@ -1439,19 +1584,19 @@
         }
         return;
       }
-
+  
       if (textoLimpioLow.includes("cerrar camara") || textoLimpioLow.includes("cerrar video") || textoLimpioLow.includes("ocultar camara") || textoLimpioLow.includes("quitar video")) {
         cerrarCamaraMovil();
         return;
       }
-
+  
       if (textoLimpioLow.includes("limpiar mapa") || textoLimpioLow.includes("borrar mapa") || textoLimpioLow.includes("sacar ruta") || textoLimpioLow.includes("cerrar ruta")) {
         limpiarRutaMapa();
         if (capaGeocercas) { map.removeLayer(capaGeocercas); capaGeocercas = null; }
         hablarWilson("Radar despejado, jefe.", true);
         return;
       }
-
+  
       if (textoLimpioLow.includes("ver todos") || textoLimpioLow.includes("toda la flota") || textoLimpioLow.includes("mapa completo")) {
         const coords = flotaActual.filter(m => m.lat && m.lng).map(m => [
           parseFloat(String(m.lat).replace(',','.')), 
@@ -1461,7 +1606,7 @@
         hablarWilson("Visualizando la flota completa en el radar, jefe.", true);
         return;
       }
-
+  
       if (!movilDirecto && (textoLimpioLow.includes("geocerca") || textoLimpioLow.includes("zona") || textoLimpioLow.includes("campamento") || textoLimpioLow.includes("ingenio"))) {
         if (geocercasActuales.length > 0) {
           mostrarGeocercasEnMapa(geocercasActuales);
@@ -1470,24 +1615,24 @@
           return;
         }
       }
-
+  
       if (!movilDirecto && (textoLimpioLow.includes("camion") || textoLimpioLow.includes("liviano") || textoLimpioLow.includes("tipo de vehiculo"))) {
         const camiones = flotaActual.filter(m => String(m.tipo_vehiculo || "").toLowerCase().includes("camion"));
         const livianos = flotaActual.filter(m => String(m.tipo_vehiculo || "").toLowerCase().includes("liviano"));
         hablarWilson("La flota tiene " + camiones.length + " camiones (" + camiones.map(m => m.nombre).join(", ") + ") y " + livianos.length + " vehículos livianos (" + livianos.map(m => m.nombre).join(", ") + "), jefe.", true);
         return;
       }
-
+  
       const pideKm = textoLimpioLow.includes("kilometro") || textoLimpioLow.includes("km") || textoLimpioLow.includes("distancia") || textoLimpioLow.includes("odometro") || textoLimpioLow.includes("recorrido total");
       if (pideKm && !textoLimpioLow.includes("ruta") && !textoLimpioLow.includes("mapa")) {
         const esTotal = textoLimpioLow.includes("total") || textoLimpioLow.includes("acumulado") || textoLimpioLow.includes("lleva");
         const esMes = textoLimpioLow.includes("mes") || textoLimpioLow.includes("mensual");
-
+  
         if (movilDirecto) {
           const kmDia = obtenerKmDiaNumero(movilDirecto).toFixed(2);
           const kmMes = obtenerKmMesNumero(movilDirecto).toFixed(2);
           const kmTot = obtenerKmTotalesNumero(movilDirecto).toFixed(2);
-
+  
           if (esTotal) {
             enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " lleva recorridos " + kmTot + " kilómetros en total, jefe.");
           } else if (esMes) {
@@ -1512,7 +1657,7 @@
         }
         return;
       }
-
+  
       const pideCombustible = textoLimpioLow.includes("combustible") || textoLimpioLow.includes("nafta") || textoLimpioLow.includes("gasoil") || textoLimpioLow.includes("tanque") || textoLimpioLow.includes("diesel");
       if (pideCombustible) {
         if (movilDirecto) {
@@ -1528,7 +1673,7 @@
         }
         return;
       }
-
+  
       if (movilDirecto) {
         if (pideNovedades) {
           const alertasMovil = alertasActuales.filter(a => String(a.movil || "").toLowerCase().includes(String(movilDirecto.nombre || "").toLowerCase()));
@@ -1543,7 +1688,7 @@
           if (velNum > 60) novs.push("circula con exceso de velocidad a " + velNum + " km/h");
           if (!isNaN(combNum) && combNum <= 25) novs.push("está bajo de combustible al " + formatearCombustible(movilDirecto));
           if (!isNaN(batNum) && batNum <= 15) novs.push("tiene batería crítica al " + formatearBateria(movilDirecto.bateria));
-
+  
           if (novs.length > 0) {
             enfocarMovil(movilDirecto, "Novedades del " + movilDirecto.nombre + ": " + novs.join(" y ") + ", jefe.");
           } else {
@@ -1551,56 +1696,56 @@
           }
           return;
         }
-
+  
         if (textoLimpioLow.includes("telefono") || textoLimpioLow.includes("celular") || textoLimpioLow.includes("numero") || textoLimpioLow.includes("linea")) {
           enfocarMovil(movilDirecto, "El número de teléfono del " + movilDirecto.nombre + " es " + (movilDirecto.telefono || "no cargado en la planilla") + ", jefe.");
           return;
         }
-
+  
         if (textoLimpioLow.includes("correo") || textoLimpioLow.includes("mail") || textoLimpioLow.includes("gmail") || textoLimpioLow.includes("cuenta")) {
           const mail = movilDirecto.correo || movilDirecto.correo_movil || "no asignado";
           enfocarMovil(movilDirecto, "El correo asociado al " + movilDirecto.nombre + " es " + mail + ", jefe.");
           return;
         }
-
+  
         if (textoLimpioLow.includes("tipo") || textoLimpioLow.includes("vehiculo") || textoLimpioLow.includes("categoria") || textoLimpioLow.includes("porte")) {
           enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " es un vehículo de tipo " + (movilDirecto.tipo_vehiculo || "no especificado") + ", jefe.");
           return;
         }
-
+  
         if (textoLimpioLow.includes("zona") || textoLimpioLow.includes("geocerca") || textoLimpioLow.includes("ubicacion") || textoLimpioLow.includes("donde")) {
           const zonaTxt = movilDirecto.zona_actual || "zona sin geocerca asignada";
           enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " se ubica en " + zonaTxt + ", coordenadas " + (movilDirecto.coordenadas || "") + ", jefe.");
           return;
         }
-
+  
         if (textoLimpioLow.includes("ip") || textoLimpioLow.includes("enlace") || textoLimpioLow.includes("transmision") || textoLimpioLow.includes("trasmision")) {
           const ipTxt = movilDirecto.ip ? ("IP privada " + movilDirecto.ip) : "sin IP privada configurada";
           enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " tiene " + ipTxt + ", jefe.");
           return;
         }
-
+  
         if (textoLimpioLow.includes("comando") || textoLimpioLow.includes("orden")) {
           enfocarMovil(movilDirecto, "El comando administrativo del " + movilDirecto.nombre + " figura como " + (movilDirecto.comando_admin || "normal") + ", jefe.");
           return;
         }
-
+  
         if (textoLimpioLow.includes("ultimo") || textoLimpioLow.includes("hora") || textoLimpioLow.includes("conexion") || textoLimpioLow.includes("registro")) {
           enfocarMovil(movilDirecto, "El último registro del " + movilDirecto.nombre + " fue el " + (movilDirecto.ultimo_registro || "no disponible") + ", jefe.");
           return;
         }
-
+  
         if (textoLimpioLow.includes("ruta") || textoLimpioLow.includes("recorrido") || textoLimpioLow.includes("historial")) {
           cargarRutaMovil(movilDirecto.id, movilDirecto.nombre);
           return;
         }
-
+  
         if (textoLimpioLow.includes("camara") || textoLimpioLow.includes("vivo") || textoLimpioLow.includes("video")) {
           enfocarMovil(movilDirecto, false);
-          abrirCamaraMovil(movilDirecto.nombre, movilDirecto.ip || movilDirecto.ip_privada || movilDirecto.link_trasmision);
+          abrirCamaraMovil(movilDirecto.nombre, movilDirecto.ip || movilDirecto.ip_privada || movilDirecto.link_video);
           return;
         }
-
+  
         if (textoLimpioLow.includes("whatsapp") || textoLimpioLow.includes("mandar")) {
           const vel = parseFloat(movilDirecto.velocidad) || 0;
           const est = (movilDirecto.estado === "En movimiento" || vel >= 3.5) ? "En movimiento" : "Detenido";
@@ -1608,18 +1753,18 @@
           hablarWilson("Preparando mensaje de WhatsApp para el " + movilDirecto.nombre + ", jefe.", true);
           return;
         }
-
+  
         if (textoLimpioLow.includes("calle") || textoLimpioLow.includes("street") || textoLimpioLow.includes("vista")) {
           abrirStreetView(movilDirecto.lat, movilDirecto.lng);
           hablarWilson("Abriendo vista de calle para el " + movilDirecto.nombre + ", jefe.", true);
           return;
         }
-
+  
         if (textoLimpioLow.includes("bateria") || textoLimpioLow.includes("carga")) {
           enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " tiene la batería al " + (formatearBateria(movilDirecto.bateria) || "100%") + ", jefe.");
           return;
         }
-
+  
         if (textoLimpioLow.includes("informe") || textoLimpioLow.includes("detalle") || textoLimpioLow.includes("ficha") || textoLimpioLow.includes("todo")) {
           const vel = parseFloat(movilDirecto.velocidad) || 0;
           const velTxt = vel > 0 ? ("en movimiento a " + vel + " km/h") : "detenido";
@@ -1631,7 +1776,7 @@
           enfocarMovil(movilDirecto, msj);
           return;
         }
-
+  
         const vel = parseFloat(movilDirecto.velocidad) || 0;
         const estadoTxt = vel > 0 ? ("en movimiento a " + vel + " kilómetros por hora") : "detenido";
         const zonaTxt = movilDirecto.zona_actual ? (" en " + movilDirecto.zona_actual) : "";
@@ -1639,11 +1784,11 @@
         const batTxt = movilDirecto.bateria ? (". Batería al " + formatearBateria(movilDirecto.bateria)) : "";
         const kmHoyVal = obtenerKmDiaNumero(movilDirecto);
         const kmHoy = (kmHoyVal > 0) ? (". Lleva " + kmHoyVal.toFixed(2) + " kilómetros hoy") : "";
-
+  
         enfocarMovil(movilDirecto, "El " + movilDirecto.nombre + " se encuentra " + estadoTxt + zonaTxt + ". Combustible al " + combTxt + batTxt + kmHoy + ", jefe.");
         return; 
       }
-
+  
       const fechaAEnviar = document.getElementById('input-fecha-filtro').value;
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
@@ -1666,13 +1811,13 @@
                      }
                  }
              }
-
+  
              let accion = String(resObj.accion || "").toUpperCase();
              let movilId = String(resObj.movilId || resObj.movilNombre || "");
              let textoHablar = resObj.texto ? String(resObj.texto) : "";
              let finalLat = parseFloat(resObj.lat);
              let finalLng = parseFloat(resObj.lng);
-
+  
              if (accion === "OCULTAR_DRON") {
                  cerrarConsolaDron();
                  hablarWilson(textoHablar || "Consola de dron cerrada, jefe.", true);
@@ -1683,17 +1828,17 @@
                  hablarWilson(textoHablar || "Desplegando Dron ER9, jefe.", true);
                  return;
              }
-
+  
              if (isNaN(finalLat) || isNaN(finalLng)) {
                  let latM = strCrudo.match(/"lat"\s*:\s*(-?\d{1,3}[\.,]\d+)/i) || strCrudo.match(/(-2[67][\.,]\d+)/);
                  let lngM = strCrudo.match(/"lng"\s*:\s*(-?\d{1,3}[\.,]\d+)/i) || strCrudo.match(/(-6[456][\.,]\d+)/);
                  if (latM) finalLat = parseFloat(latM[1].replace(',', '.'));
                  if (lngM) finalLng = parseFloat(lngM[1].replace(',', '.'));
              }
-
+  
              textoHablar = textoHablar.replace(/\{|\}|"|'|```json|```|acci[oó]n:|m[oó]vil[_\s]*id:|texto:/gi, "").trim();
              let targetMovil = buscarMovilEnFlota(movilId) || buscarMovilEnFlota(texto);
-
+  
              if (!targetMovil && !isNaN(finalLat) && !isNaN(finalLng)) {
                  targetMovil = {
                      id: movilId || "temp",
@@ -1702,16 +1847,16 @@
                      lng: finalLng
                  };
              }
-
+  
              if (targetMovil) {
                  if (!isNaN(finalLat)) targetMovil.lat = finalLat;
                  if (!isNaN(finalLng)) targetMovil.lng = finalLng;
-
+  
                  if (accion.includes("RUTA") || textoLimpioLow.includes("ruta") || textoLimpioLow.includes("recorrido") || textoLimpioLow.includes("historial")) {
                      cargarRutaMovil(targetMovil.id, targetMovil.nombre);
                  } else if (accion.includes("CAMARA") || textoLimpioLow.includes("camara") || textoLimpioLow.includes("vivo") || textoLimpioLow.includes("video")) {
                      enfocarMovil(targetMovil, false);
-                     abrirCamaraMovil(targetMovil.nombre, targetMovil.ip || targetMovil.ip_privada || targetMovil.link_trasmision);
+                     abrirCamaraMovil(targetMovil.nombre, targetMovil.ip || targetMovil.ip_privada || targetMovil.link_video);
                  } else if (accion.includes("DRON") || textoLimpioLow.includes("dron") || textoLimpioLow.includes("drone")) {
                      comandarDrone(targetMovil.nombre);
                  } else if (accion.includes("WHATSAPP") || textoLimpioLow.includes("whatsapp") || textoLimpioLow.includes("mandar")) {
@@ -1737,7 +1882,7 @@
         hablarWilson("Servidor desconectado, jefe.");
       }
     }
-
+  
     function enfocarMovil(m, textoPersonalizado) {
       movilEnfocadoId = m.id;
       document.querySelectorAll('.card-movil').forEach(c => c.classList.remove('selected'));
@@ -1757,20 +1902,19 @@
         
         if (map) {
           setTimeout(() => {
-              map.invalidateSize();
-              map.flyTo([lat, lng], 17, { animate: true, duration: 1.2 });
-          }, 100);
+              map.flyTo([lat, lng], 17, { animate: true, duration: 0.9 });
+          }, 80);
         }
       } else {
         hablarWilson("El móvil fue localizado pero no cuenta con coordenadas numéricas válidas en este momento, jefe.", true);
       }
     }
-
+  
     function comandarDrone(nombreMovil) {
       abrirConsolaDron();
       hablarWilson("Desplegando patrullaje de dron sobre el " + nombreMovil + ", jefe.", true);
     }
-
+  
     function ejecutarComandoGlobalDrone(accion) {
       const accLow = String(accion || "").toLowerCase();
       if (accLow.includes("aterrizar") || accLow.includes("retorno")) {
@@ -1781,7 +1925,7 @@
         hablarWilson("Comando de dron en ejecución: " + accion + ", jefe.", true);
       }
     }
-
+  
     function formatearBateria(batCrudaStr) {
       let batStr = String(batCrudaStr || "").trim();
       if (batStr.includes('%')) return batStr;
@@ -1791,7 +1935,7 @@
       if (val > 1) return Math.round(val) + "%";
       return "100%";
     }
-
+  
     function cargarGeocercasIniciales() {
       if (typeof google === 'undefined' || !google.script || !google.script.run) return;
       google.script.run
@@ -1801,8 +1945,9 @@
         .withFailureHandler(function() {})
         .obtenerGeocercas();
     }
-
+  
     function verificarAlertasActivas() {
+      if (document.hidden || ('speechSynthesis' in window && window.speechSynthesis.speaking)) return;
       if (typeof google === 'undefined' || !google.script || !google.script.run) return;
       google.script.run
         .withSuccessHandler(function(alertas) {
@@ -1822,7 +1967,7 @@
         .withFailureHandler(function() {})
         .obtenerAlertasActivas();
     }
-
+  
     function silenciarAlertaActual() {
       if (!idAlertaActiva) return;
       google.script.run
@@ -1835,8 +1980,10 @@
         })
         .desactivarAlerta(idAlertaActiva);
     }
-
+  
     function actualizarFlota() {
+      // Evita consumir CPU o entrecortar la voz mientras Wilson habla o la pestaña está oculta
+      if (document.hidden || ('speechSynthesis' in window && window.speechSynthesis.speaking)) return;
       if (typeof google === 'undefined' || !google.script || !google.script.run) return;
       google.script.run
         .withSuccessHandler(renderizarFlota)
@@ -1847,11 +1994,11 @@
         })
         .obtenerDatosFlota();
     }
-
+  
     function renderizarFlota(movilesRaw) {
       const listaContainer = document.getElementById('lista-moviles');
       const moviles = Array.isArray(movilesRaw) ? movilesRaw : (movilesRaw && (movilesRaw.moviles || movilesRaw.datos)) || [];
-
+  
       if (!moviles || moviles.length === 0) {
         listaContainer.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 15px; font-size: 0.8rem;">' +
           '<i class="fa-solid fa-circle-info"></i> No se encontraron móviles con coordenadas válidas en <b>Dashboard_vivo</b> o <b>Radar</b>.</div>';
@@ -1860,11 +2007,16 @@
         document.getElementById('total-detenidos').innerText = 0;
         return;
       }
-      flotaActual = moviles;
-      let countMov = 0, countDet = 0;
-      listaContainer.innerHTML = '';
-      let primerPuntoValido = null;
 
+      flotaActual = moviles;
+      const nuevaFirma = JSON.stringify(moviles.map(m => [m.id, m.lat, m.lng, m.velocidad, m.estado, m.bateria, m.combustible, m.km_mes, m.alerta, m.ip]));
+      const huboCambios = (nuevaFirma !== firmaFlotaAnterior);
+      firmaFlotaAnterior = nuevaFirma;
+
+      let countMov = 0, countDet = 0;
+      let primerPuntoValido = null;
+      const fragmento = huboCambios ? document.createDocumentFragment() : null;
+  
       moviles.forEach(function(m) {
         const vel = parseFloat(m.velocidad) || 0;
         const estadoActual = (m.estado === "En movimiento" || vel >= 3.5) ? "En movimiento" : "Detenido";
@@ -1875,7 +2027,7 @@
             parseFloat(String(m.lng).replace(',','.'))
           ];
         }
-
+  
         if (!primeraVez) {
           const prev = estadosPreviosMoviles[m.id];
           if (prev) {
@@ -1891,6 +2043,8 @@
         }
         estadosPreviosMoviles[m.id] = { estado: estadoActual, velocidad: vel };
 
+        if (!huboCambios) return;
+  
         const bateriaFormateada = formatearBateria(m.bateria);
         const combustibleFormateado = formatearCombustible(m);
         const kmMesVal = obtenerKmMesNumero(m).toFixed(1).replace('.', ',');
@@ -1909,8 +2063,8 @@
         let lngSana = parseFloat(String(m.lng).replace(',','.'));
         const urlStreet = obtenerUrlStreetView(latSana, lngSana);
         const urlWsp = obtenerUrlWhatsApp(nomLimpio, latSana, lngSana, vel, estadoActual);
-        const ipCamara = m.ip || m.ip_privada || m.link_trasmision || '';
-
+        const ipCamara = m.ip || m.ip_privada || m.link_video || '';
+  
         if (marcadores[m.id]) {
           marcadores[m.id].setLatLng([latSana, lngSana]);
           marcadores[m.id].setIcon(customIcon);
@@ -1921,7 +2075,7 @@
           });
           marcadores[m.id] = marker;
         }
-
+  
         const card = document.createElement('div');
         card.className = 'card-movil' + (movilEnfocadoId === m.id ? ' selected' : '');
         card.id = 'card-' + idLimpio;
@@ -1944,15 +2098,20 @@
             '<a href="' + urlWsp + '" target="_blank" rel="noopener noreferrer" class="btn-accion btn-wsp" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>' +
             '<button class="btn-accion btn-ruta" onclick="cargarRutaMovil(\'' + idLimpio + '\', \'' + nomLimpio + '\')" title="Ver Ruta"><i class="fa-solid fa-route"></i></button>' +
             '<button class="btn-accion btn-drone" onclick="comandarDrone(\'' + nomLimpio + '\')" title="Patrullar con Dron"><i class="fa-solid fa-helicopter"></i></button>' +
-            '<button class="btn-accion btn-cam" onclick="abrirCamaraMovil(\'' + nomLimpio + '\', \'' + ipCamara + '\')" title="Cámara Silenciosa en Vivo"><i class="fa-solid fa-video"></i></button>' +
+            '<button class="btn-accion btn-cam" onclick="abrirCamaraMovil(\'' + nomLimpio + '\', \'' + ipCamara + '\')" title="Cámara en Vivo"><i class="fa-solid fa-video"></i></button>' +
           '</div>';
-        listaContainer.appendChild(card);
+        fragmento.appendChild(card);
       });
 
+      if (huboCambios && fragmento) {
+        listaContainer.innerHTML = '';
+        listaContainer.appendChild(fragmento);
+      }
+  
       document.getElementById('total-activos').innerText = moviles.length;
       document.getElementById('total-movimiento').innerText = countMov;
       document.getElementById('total-detenidos').innerText = countDet;
-
+  
       if (primeraVez) {
         primeraVez = false;
         map.invalidateSize();
@@ -1961,7 +2120,7 @@
           const n = (m.nombre || "").toLowerCase();
           return n.includes('syta') || n.includes('admin') || String(m.id) === '77903373';
         });
-
+  
         if (movilAdmin && movilAdmin.lat && movilAdmin.lng) {
           centroInicial = [
             parseFloat(String(movilAdmin.lat).replace(',','.')), 
@@ -1970,7 +2129,7 @@
         } else if (primerPuntoValido) {
           centroInicial = primerPuntoValido;
         }
-
+  
         if (centroInicial && !isNaN(centroInicial[0])) {
           map.setView(centroInicial, 17);
         }
@@ -1979,14 +2138,14 @@
         hablarWilson("Sistema en línea para " + nombreUsuario + ". Tenemos " + moviles.length + " móviles reportando: " + countMov + " en marcha y " + countDet + " detenidos, jefe.", true);
       }
     }
-
+  
     function enfocarMovilPorId(idBuscado) {
       const movil = flotaActual.find(function(item) { return String(item.id) === String(idBuscado); });
       if (movil) {
         enfocarMovil(movil);
       }
     }
-
+  
     function cargarRutaMovil(idMovil, nombreMovil) {
       movilRutaActiva = { id: idMovil, nombre: nombreMovil };
       const fechaSel = document.getElementById('input-fecha-filtro').value;
@@ -1996,7 +2155,7 @@
         .withFailureHandler(function(err) { hablarWilson("Error al consultar el recorrido en el servidor, jefe.", true); })
         .obtenerRutaMovil(idMovil, fechaSel);
     }
-
+  
     function limpiarRutaMapa() {
       if (capaRutaActual) {
         map.removeLayer(capaRutaActual);
@@ -2005,7 +2164,7 @@
       document.getElementById('ruta-info-panel').style.display = 'none';
       movilRutaActiva = null;
     }
-
+  
     function dibujarRutaEnMapa(puntos, nombreMovil, fechaSel) {
       limpiarRutaMapa();
       if (!puntos || puntos.length === 0) {
@@ -2019,11 +2178,11 @@
         if (!gruposPorDia[dia]) gruposPorDia[dia] = [];
         gruposPorDia[dia].push(p);
       });
-
+  
       const fechasUnicas = Object.keys(gruposPorDia);
       const panelLeyenda = document.getElementById('ruta-leyenda-dias');
       panelLeyenda.innerHTML = '';
-
+  
       fechasUnicas.forEach(function(fechaIso, index) {
         const colorEstilo = PALETA_NEON[index % PALETA_NEON.length];
         const puntosDia = gruposPorDia[fechaIso];
@@ -2031,64 +2190,64 @@
         const latlngs = puntosDia.map(function(p) { 
           return [parseFloat(String(p.lat).replace(',','.')), parseFloat(String(p.lng).replace(',','.'))]; 
         });
-
+  
         if (latlngs.length > 1) {
           const lineaResplandor = L.polyline(latlngs, {
-            color: colorEstilo.glow, weight: 12, opacity: 0.6, lineCap: 'round', lineJoin: 'round'
+            color: colorEstilo.glow, weight: 10, opacity: 0.55, lineCap: 'round', lineJoin: 'round'
           });
           const lineaCentral = L.polyline(latlngs, {
-            color: colorEstilo.core, weight: 4, opacity: 0.95, lineCap: 'round', lineJoin: 'round'
+            color: colorEstilo.core, weight: 3.5, opacity: 0.95, lineCap: 'round', lineJoin: 'round'
           });
           capaRutaActual.addLayer(lineaResplandor);
           capaRutaActual.addLayer(lineaCentral);
         }
-
+  
         puntosDia.forEach(function(p, i) {
           let colorPunto = colorEstilo.glow;
-          let radio = 6;
+          let radio = 5.5;
           if (i === 0) { colorPunto = '#10B981'; radio = 8; } 
-          else if (i === puntosDia.length - 1) { colorPunto = '#EF4444'; radio = 9; }
-
+          else if (i === puntosDia.length - 1) { colorPunto = '#EF4444'; radio = 8.5; }
+  
           let latP = parseFloat(String(p.lat).replace(',','.'));
           let lngP = parseFloat(String(p.lng).replace(',','.'));
           const puntoMarker = L.circleMarker([latP, lngP], {
-            radius: radio, fillColor: colorPunto, color: '#FFFFFF', weight: 2, fillOpacity: 0.9
+            radius: radio, fillColor: colorPunto, color: '#FFFFFF', weight: 1.5, fillOpacity: 0.9
           }).bindPopup('<b>' + sanitizar(nombreMovil) + '</b><br>Hora: ' + p.fechaHora + '<br>Velocidad: ' + p.velocidad + ' km/h');
           capaRutaActual.addLayer(puntoMarker);
         });
-
+  
         const fechaPartes = fechaIso.split('-');
         const fechaFormateada = (fechaPartes.length === 3) ? `${fechaPartes[2]}/${fechaPartes[1]}/${fechaPartes[0]}` : fechaIso;
         const itemLeyenda = document.createElement('div');
         itemLeyenda.className = 'item-leyenda-dia';
-        itemLeyenda.innerHTML = `<div class="color-dot-leyenda" style="background: ${colorEstilo.glow}; color: ${colorEstilo.glow}"></div><span>${fechaFormateada} (${puntosDia.length} pts)</span>`;
+        itemLeyenda.innerHTML = `<div class="color-dot-leyenda" style="background: ${colorEstilo.glow}"></div><span>${fechaFormateada} (${puntosDia.length} pts)</span>`;
         panelLeyenda.appendChild(itemLeyenda);
       });
-
+  
       capaRutaActual.addTo(map);
       if (capaRutaActual.bringToFront) capaRutaActual.bringToFront(); 
-
+  
       const primerPunto = puntos[0];
       const ultimoPunto = puntos[puntos.length - 1];
       let pLat = parseFloat(String(primerPunto.lat).replace(',','.'));
       let pLng = parseFloat(String(primerPunto.lng).replace(',','.'));
-
+  
       if (puntos.length === 1 || (primerPunto.lat === ultimoPunto.lat && primerPunto.lng === ultimoPunto.lng)) {
         map.setView([pLat, pLng], 17); 
       } else {
         map.fitBounds(capaRutaActual.getBounds(), { padding: [50, 50] });
       } 
-
+  
       document.getElementById('ruta-titulo-movil').innerText = '📍 Recorrido: ' + sanitizar(nombreMovil);
       document.getElementById('ruta-info-panel').style.display = 'flex';
       hablarWilson("Recorrido del " + nombreMovil + " trazado en el radar, jefe.", true);
     } 
-
+  
     actualizarFlota();
     verificarAlertasActivas();
     cargarGeocercasIniciales();
-    setInterval(actualizarFlota, 5000);
-    setInterval(verificarAlertasActivas, 10000);
+    setInterval(actualizarFlota, 12000);
+    setInterval(verificarAlertasActivas, 15000);
   </script>
 </body>
 </html>
