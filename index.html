@@ -538,13 +538,34 @@
     function abrirStreetView(lat, lng) { abrirUrlExternaSegura(obtenerUrlStreetView(lat, lng)); }
     function abrirWhatsApp(nombre, lat, lng, vel, estado) { abrirUrlExternaSegura(obtenerUrlWhatsApp(nombre, lat, lng, vel, estado)); }
   
-    function mostrarGeocercasEnMapa(zonas) {
+    function mostrarGeocercasEnMapa(zonas, filtroNombre = "") {
       if (capaGeocercas) { map.removeLayer(capaGeocercas); capaGeocercas = null; }
-      if (!zonas || zonas.length === 0) return;
+      if (!zonas || zonas.length === 0) {
+        hablarWilson("No hay geocercas cargadas en la hoja Geocercas de la planilla, jefe.", true);
+        return;
+      }
+      let lista = zonas;
+      if (filtroNombre) {
+        const fNorm = filtroNombre.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+        const filtradas = zonas.filter(z => fNorm.includes(String(z.nombre || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")));
+        if (filtradas.length > 0) lista = filtradas;
+      }
       capaGeocercas = L.featureGroup();
-      zonas.forEach(z => capaGeocercas.addLayer(L.circle([z.lat, z.lng], { radius: z.radio, color: '#06B6D4', fillColor: '#06B6D4', fillOpacity: 0.15, weight: 2 }).bindPopup('<b>Geocerca: ' + sanitizar(z.nombre) + '</b><br>Radio: ' + z.radio + ' m')));
+      const panelLeyenda = document.getElementById('ruta-leyenda-dias');
+      panelLeyenda.innerHTML = '';
+      lista.forEach(z => {
+        const circulo = L.circle([z.lat, z.lng], {
+          radius: z.radio, color: '#06B6D4', fillColor: '#06B6D4', fillOpacity: 0.18, weight: 2.5
+        }).bindPopup('<b>Geocerca: ' + sanitizar(z.nombre) + '</b><br>Radio: ' + z.radio + ' m');
+        circulo.bindTooltip('🛡️ ' + sanitizar(z.nombre) + ' (' + z.radio + 'm)', { permanent: true, direction: 'center', className: 'custom-movil-label' });
+        capaGeocercas.addLayer(circulo);
+        panelLeyenda.innerHTML += `<div class="item-leyenda-dia"><div class="color-dot-leyenda" style="background: #06B6D4"></div><span>${sanitizar(z.nombre)} (${z.radio} m)</span></div>`;
+      });
       capaGeocercas.addTo(map);
       map.fitBounds(capaGeocercas.getBounds(), { padding: [50, 50] });
+      document.getElementById('ruta-titulo-movil').innerText = '🛡️ Geocercas Activas (' + lista.length + ')';
+      document.getElementById('ruta-info-panel').style.display = 'flex';
+      hablarWilson("Mostrando " + (lista.length === 1 ? ("la geocerca " + lista[0].nombre) : (lista.length + " geocercas autorizadas")) + " en el mapa, jefe. Podés borrarlas con la cruz o diciendo limpiar mapa.", true);
     }
   
     function enviarConsultaTexto() {
