@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>SISTEMA ER9 - Control de Flota y Dron V4</title>
+  <title>SISTEMA ER9 - Control de Flota y Dron V5</title>
   
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
@@ -980,24 +980,19 @@
       if (!s || s.startsWith("rtsp://") || s.includes(".m3u8") || s.includes(".mp4") || s.includes("/stream")) {
         return false;
       }
-      // Si es IP:puerto pelada (ej: 192.168.100.119:8080) o termina en /video, es IP Webcam
       return /^https?:\/\/[^\/]+(\/video)?\/?$/.test(s) || /^[^\/:]+:\d+(\/video)?\/?$/.test(s);
     }
   
     function iniciarCicloGrabacion(ipBase) {
       if (cicloGrabacionActivo || !ipBase) return;
       cicloGrabacionActivo = true;
-      
-      // Asegurar silencio en IP Webcam al iniciar transmisión
       fetch('http://' + ipBase + '/settings/audio?set=off', { mode: 'no-cors' }).catch(() => {});
 
       function pasoDelCiclo() {
         if (!cicloGrabacionActivo) return;
-        // Graba 12 segundos
         fetch('http://' + ipBase + '/settings/record?set=on', { mode: 'no-cors' }).catch(() => {});
         timeoutCicloGrabacion = setTimeout(() => {
           if (!cicloGrabacionActivo) return;
-          // Corta y pausa 5 segundos para cuidar datos y batería
           fetch('http://' + ipBase + '/settings/record?set=off', { mode: 'no-cors' }).catch(() => {});
           timeoutCicloGrabacion = setTimeout(pasoDelCiclo, 5000);
         }, 12000);
@@ -1030,7 +1025,6 @@
         urlVideo = 'http://' + urlVideo;
       }
 
-      // Solo agregamos /video si es un celular con IP Webcam sin ruta definida
       if (esIpWebcamActual && !urlVideo.includes('/video')) {
         urlVideo = urlVideo.replace(/\/+$/, '') + '/video';
       }
@@ -1081,18 +1075,18 @@
     }
   
     // =================================================================
-    // SÍNTESIS Y RECONOCIMIENTO DE VOZ OPTIMIZADO PARA ESPAÑOL ARGENTINO
+    // SÍNTESIS Y RECONOCIMIENTO DE VOZ INSTANTÁNEO (< 0.4s)
     // =================================================================
     let vocesCargadas = [];
     let vozArgentinaElegida = null;
     let reconocimientoVoz = null;
     let escuchandoAhora = false;
+    let ordenEjecutadaEnTurno = false;
     let timerNegativaPendiente = null;
     let ultimaAccionExitosaTs = 0;
   
     function seleccionarMejorVozArgentina(lista) {
       if (!lista || lista.length === 0) return null;
-      // 1. Prioridad absoluta: Español de Argentina (es-AR o es_AR)
       let ar = lista.filter(v => {
         const l = String(v.lang || "").toLowerCase().replace('_', '-');
         return l === 'es-ar' || l.startsWith('es-ar');
@@ -1100,7 +1094,6 @@
       if (ar.length > 0) {
         return ar.find(v => v.name.toLowerCase().includes('google') || v.name.toLowerCase().includes('tomas') || v.name.toLowerCase().includes('male')) || ar[0];
       }
-      // 2. Segunda opción: Español Latinoamérica (es-419, es-UY, es-MX, es-US) evitando es-ES (España)
       let latam = lista.filter(v => {
         const l = String(v.lang || "").toLowerCase().replace('_', '-');
         return l.startsWith('es-') && l !== 'es-es';
@@ -1108,7 +1101,6 @@
       if (latam.length > 0) {
         return latam.find(v => v.name.toLowerCase().includes('google')) || latam[0];
       }
-      // 3. Cualquier voz en español
       return lista.find(v => String(v.lang || "").toLowerCase().startsWith('es')) || null;
     }
 
@@ -1125,7 +1117,6 @@
     if ('speechSynthesis' in window) {
       cargarVocesDisponibles();
       window.speechSynthesis.onvoiceschanged = cargarVocesDisponibles;
-      // Reintento temprano por si Android/Chromium demora en cargar las voces
       setTimeout(cargarVocesDisponibles, 300);
       setTimeout(cargarVocesDisponibles, 1200);
     }
@@ -1154,18 +1145,16 @@
         textoLimpio = "Entendido, jefe.";
       }
 
-      setTimeout(() => {
-        window.locucionActual = new SpeechSynthesisUtterance(textoLimpio);
-        window.locucionActual.lang = 'es-AR';
-        window.locucionActual.rate = 1.02;
-        window.locucionActual.pitch = 0.96;
-        
-        if (vozArgentinaElegida) {
-          window.locucionActual.voice = vozArgentinaElegida;
-        }
-        
-        window.speechSynthesis.speak(window.locucionActual);
-      }, 90);
+      window.locucionActual = new SpeechSynthesisUtterance(textoLimpio);
+      window.locucionActual.lang = 'es-AR';
+      window.locucionActual.rate = 1.04;
+      window.locucionActual.pitch = 0.96;
+      
+      if (vozArgentinaElegida) {
+        window.locucionActual.voice = vozArgentinaElegida;
+      }
+      
+      window.speechSynthesis.speak(window.locucionActual);
     }
   
     function hablarWilson(textoOriginal, esAccionExitosa = false) {
@@ -1194,6 +1183,26 @@
       }
       ejecutarLocucion(textoLimpio);
     }
+
+    // Detecta si la frase parcial ya contiene una acción completa para disparar sin demora
+    function esOrdenCompletaAnticipada(frase) {
+      const t = String(frase || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+      if (t.length < 4) return false;
+      const accionesDirectas = [
+        "aterrizar", "rtb", "retorno a base", "apagar dron", "cerrar dron", "ocultar dron",
+        "despegar", "patrullar", "orbitar", "abrir dron", "activar dron",
+        "cerrar camara", "ocultar camara", "cerrar video",
+        "limpiar mapa", "borrar mapa", "sacar ruta", "cerrar ruta",
+        "ver todos", "toda la flota", "mapa completo", "novedades", "alertas"
+      ];
+      if (accionesDirectas.some(cmd => t.includes(cmd))) return true;
+      // Si menciona un móvil y ya tiene al menos 2 palabras (ej: "scania azul", "movil 2", "jose paez")
+      const palabras = t.split(/\s+/).filter(Boolean);
+      if (palabras.length >= 2 && buscarMovilEnFlota(t) && !t.endsWith("de") && !t.endsWith("del") && !t.endsWith("el")) {
+        return true;
+      }
+      return false;
+    }
   
     function inicializarReconocimientoVoz() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -1201,27 +1210,36 @@
       const rec = new SpeechRecognition();
       rec.lang = 'es-AR';
       rec.continuous = false;
-      rec.interimResults = false;
+      rec.interimResults = true;
       rec.maxAlternatives = 1;
   
       rec.onstart = function() {
         escuchandoAhora = true;
+        ordenEjecutadaEnTurno = false;
         const btnMic = document.getElementById('btn-mic-wilson');
         const input = document.getElementById('input-consulta');
         if (btnMic) btnMic.classList.add('escuchando');
-        if (input) input.placeholder = "Escuchando su orden, jefe...";
+        if (input) input.placeholder = "Escuchando orden...";
       };
   
       rec.onresult = function(event) {
+        if (ordenEjecutadaEnTurno) return;
         const lastIdx = event.results.length - 1;
-        const transcripcion = String(event.results[lastIdx][0].transcript || "")
+        const res = event.results[lastIdx];
+        const transcripcion = String(res[0].transcript || "")
           .replace(/[.,!?¿¡]/g, " ")
           .replace(/\s+/g, " ")
           .trim();
         if (!transcripcion) return;
+
         const input = document.getElementById('input-consulta');
         if (input) input.value = transcripcion;
-        setTimeout(enviarConsultaTexto, 100);
+
+        if (res.isFinal || esOrdenCompletaAnticipada(transcripcion)) {
+          ordenEjecutadaEnTurno = true;
+          try { rec.stop(); } catch(e) {}
+          enviarConsultaTexto();
+        }
       };
   
       rec.onerror = function(event) {
@@ -1238,6 +1256,11 @@
         const input = document.getElementById('input-consulta');
         if (btnMic) btnMic.classList.remove('escuchando');
         if (input) input.placeholder = "Pregunte a Wilson...";
+        // Si quedó texto sin disparar al cortarse el audio, ejecutarlo inmediatamente
+        if (!ordenEjecutadaEnTurno && input && input.value.trim().length > 1) {
+          ordenEjecutadaEnTurno = true;
+          enviarConsultaTexto();
+        }
       };
       return rec;
     }
@@ -1450,7 +1473,8 @@
       if (encontrado) return encontrado;
       if (limpio.includes("azul")) return flotaActual.find(m => String(m.id).includes("24848479") || String(m.nombre).toLowerCase().includes("azul"));
       if (limpio.includes("blanco")) return flotaActual.find(m => String(m.id).includes("47961388") || String(m.nombre).toLowerCase().includes("blanco"));
-      if (limpio.includes("auditor") || limpio.includes("jose")) return flotaActual.find(m => String(m.id).includes("31222059") || String(m.nombre).toLowerCase().includes("auditor") || String(m.nombre).toLowerCase().includes("jose"));
+      if (limpio.includes("auditor") || limpio.includes("jose") || limpio.includes("paez")) return flotaActual.find(m => String(m.id).includes("31222059") || String(m.nombre).toLowerCase().includes("auditor") || String(m.nombre).toLowerCase().includes("jose"));
+      if (limpio.includes("catania")) return flotaActual.find(m => String(m.nombre).toLowerCase().includes("catania"));
       if (limpio.includes("admin") || limpio.includes("syta") || limpio.includes("cita")) return flotaActual.find(m => String(m.id).includes("77903373") || String(m.nombre).toLowerCase().includes("admin") || String(m.nombre).toLowerCase().includes("syta"));
       if (limpio.includes("udl")) return flotaActual.find(m => String(m.id).toLowerCase().includes("udl") || String(m.nombre).toLowerCase().includes("udl"));
       return null;
@@ -1604,6 +1628,11 @@
         ]);
         if (coords.length > 0) map.fitBounds(coords, { padding: [40, 40] });
         hablarWilson("Visualizando la flota completa en el radar, jefe.", true);
+        return;
+      }
+
+      if (textoLimpioLow.includes("resumen") || textoLimpioLow.includes("reporte") || textoLimpioLow.includes("estado general")) {
+        forzarReporteWilson();
         return;
       }
   
@@ -1789,6 +1818,7 @@
         return; 
       }
   
+      // Solo si el comando no se resolvió localmente, consulta al backend
       const fechaAEnviar = document.getElementById('input-fecha-filtro').value;
       if (typeof google !== 'undefined' && google.script && google.script.run) {
         google.script.run
@@ -1901,9 +1931,9 @@
         }
         
         if (map) {
-          setTimeout(() => {
-              map.flyTo([lat, lng], 17, { animate: true, duration: 0.9 });
-          }, 80);
+          map.flyTo([lat, lng], 17, { animate: true, duration: 0.7 });
+        }
+      } else], 17, { animate: true, duration: 0.7 });
         }
       } else {
         hablarWilson("El móvil fue localizado pero no cuenta con coordenadas numéricas válidas en este momento, jefe.", true);
@@ -1982,7 +2012,6 @@
     }
   
     function actualizarFlota() {
-      // Evita consumir CPU o entrecortar la voz mientras Wilson habla o la pestaña está oculta
       if (document.hidden || ('speechSynthesis' in window && window.speechSynthesis.speaking)) return;
       if (typeof google === 'undefined' || !google.script || !google.script.run) return;
       google.script.run
@@ -2082,172 +2111,4 @@
         card.onclick = function() { enfocarMovil(m); };
         card.innerHTML = 
           '<div class="card-top">' +
-            '<div><div class="movil-nombre">' + nomLimpio + '</div><div class="movil-id">ID: ' + idLimpio + (m.zona_actual ? ' · ' + sanitizar(m.zona_actual) : '') + '</div></div>' +
-            '<span class="movil-badge ' + (estadoActual === "En movimiento" ? 'badge-movimiento' : 'badge-detenido') + '">' + estadoActual + '</span>' +
-          '</div>' +
-          '<div class="card-body">' +
-            '<div class="card-telemetria-extra">' +
-              '<span class="telemetria-pill" title="Batería"><i class="fa-solid fa-battery-half"></i> ' + bateriaFormateada + '</span>' +
-              '<span class="telemetria-pill" style="color: #FBBF24;" title="Combustible"><i class="fa-solid fa-gas-pump"></i> ' + combustibleFormateado + '</span>' +
-              '<span class="telemetria-pill" style="color: #38BDF8;" title="Kilómetros del Mes"><i class="fa-solid fa-road"></i> ' + kmMesVal + ' km</span>' +
-            '</div>' +
-            '<div class="card-vel"><i class="fa-solid fa-gauge-high"></i> ' + vel + ' <span style="font-size: 0.65rem;">KM/H</span></div>' +
-          '</div>' +
-          '<div class="card-acciones" onclick="event.stopPropagation()">' +
-            '<a href="' + urlStreet + '" target="_blank" rel="noopener noreferrer" class="btn-accion btn-street" title="Street View"><i class="fa-solid fa-street-view"></i></a>' +
-            '<a href="' + urlWsp + '" target="_blank" rel="noopener noreferrer" class="btn-accion btn-wsp" title="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a>' +
-            '<button class="btn-accion btn-ruta" onclick="cargarRutaMovil(\'' + idLimpio + '\', \'' + nomLimpio + '\')" title="Ver Ruta"><i class="fa-solid fa-route"></i></button>' +
-            '<button class="btn-accion btn-drone" onclick="comandarDrone(\'' + nomLimpio + '\')" title="Patrullar con Dron"><i class="fa-solid fa-helicopter"></i></button>' +
-            '<button class="btn-accion btn-cam" onclick="abrirCamaraMovil(\'' + nomLimpio + '\', \'' + ipCamara + '\')" title="Cámara en Vivo"><i class="fa-solid fa-video"></i></button>' +
-          '</div>';
-        fragmento.appendChild(card);
-      });
-
-      if (huboCambios && fragmento) {
-        listaContainer.innerHTML = '';
-        listaContainer.appendChild(fragmento);
-      }
-  
-      document.getElementById('total-activos').innerText = moviles.length;
-      document.getElementById('total-movimiento').innerText = countMov;
-      document.getElementById('total-detenidos').innerText = countDet;
-  
-      if (primeraVez) {
-        primeraVez = false;
-        map.invalidateSize();
-        let centroInicial = null;
-        const movilAdmin = moviles.find(function(m) {
-          const n = (m.nombre || "").toLowerCase();
-          return n.includes('syta') || n.includes('admin') || String(m.id) === '77903373';
-        });
-  
-        if (movilAdmin && movilAdmin.lat && movilAdmin.lng) {
-          centroInicial = [
-            parseFloat(String(movilAdmin.lat).replace(',','.')), 
-            parseFloat(String(movilAdmin.lng).replace(',','.'))
-          ];
-        } else if (primerPuntoValido) {
-          centroInicial = primerPuntoValido;
-        }
-  
-        if (centroInicial && !isNaN(centroInicial[0])) {
-          map.setView(centroInicial, 17);
-        }
-        
-        const nombreUsuario = obtenerNombreUsuarioReal();
-        hablarWilson("Sistema en línea para " + nombreUsuario + ". Tenemos " + moviles.length + " móviles reportando: " + countMov + " en marcha y " + countDet + " detenidos, jefe.", true);
-      }
-    }
-  
-    function enfocarMovilPorId(idBuscado) {
-      const movil = flotaActual.find(function(item) { return String(item.id) === String(idBuscado); });
-      if (movil) {
-        enfocarMovil(movil);
-      }
-    }
-  
-    function cargarRutaMovil(idMovil, nombreMovil) {
-      movilRutaActiva = { id: idMovil, nombre: nombreMovil };
-      const fechaSel = document.getElementById('input-fecha-filtro').value;
-      hablarWilson("Cargando el recorrido del " + nombreMovil + ", jefe...", true);
-      google.script.run
-        .withSuccessHandler(function(puntos) { dibujarRutaEnMapa(puntos, nombreMovil, fechaSel); })
-        .withFailureHandler(function(err) { hablarWilson("Error al consultar el recorrido en el servidor, jefe.", true); })
-        .obtenerRutaMovil(idMovil, fechaSel);
-    }
-  
-    function limpiarRutaMapa() {
-      if (capaRutaActual) {
-        map.removeLayer(capaRutaActual);
-        capaRutaActual = null;
-      }
-      document.getElementById('ruta-info-panel').style.display = 'none';
-      movilRutaActiva = null;
-    }
-  
-    function dibujarRutaEnMapa(puntos, nombreMovil, fechaSel) {
-      limpiarRutaMapa();
-      if (!puntos || puntos.length === 0) {
-        hablarWilson("No se registran posiciones guardadas para el " + nombreMovil + " en esa fecha, jefe.", true);
-        return;
-      }
-      capaRutaActual = L.featureGroup();
-      const gruposPorDia = {};
-      puntos.forEach(function(p) {
-        const dia = p.fechaIso || "Sin Fecha";
-        if (!gruposPorDia[dia]) gruposPorDia[dia] = [];
-        gruposPorDia[dia].push(p);
-      });
-  
-      const fechasUnicas = Object.keys(gruposPorDia);
-      const panelLeyenda = document.getElementById('ruta-leyenda-dias');
-      panelLeyenda.innerHTML = '';
-  
-      fechasUnicas.forEach(function(fechaIso, index) {
-        const colorEstilo = PALETA_NEON[index % PALETA_NEON.length];
-        const puntosDia = gruposPorDia[fechaIso];
-        
-        const latlngs = puntosDia.map(function(p) { 
-          return [parseFloat(String(p.lat).replace(',','.')), parseFloat(String(p.lng).replace(',','.'))]; 
-        });
-  
-        if (latlngs.length > 1) {
-          const lineaResplandor = L.polyline(latlngs, {
-            color: colorEstilo.glow, weight: 10, opacity: 0.55, lineCap: 'round', lineJoin: 'round'
-          });
-          const lineaCentral = L.polyline(latlngs, {
-            color: colorEstilo.core, weight: 3.5, opacity: 0.95, lineCap: 'round', lineJoin: 'round'
-          });
-          capaRutaActual.addLayer(lineaResplandor);
-          capaRutaActual.addLayer(lineaCentral);
-        }
-  
-        puntosDia.forEach(function(p, i) {
-          let colorPunto = colorEstilo.glow;
-          let radio = 5.5;
-          if (i === 0) { colorPunto = '#10B981'; radio = 8; } 
-          else if (i === puntosDia.length - 1) { colorPunto = '#EF4444'; radio = 8.5; }
-  
-          let latP = parseFloat(String(p.lat).replace(',','.'));
-          let lngP = parseFloat(String(p.lng).replace(',','.'));
-          const puntoMarker = L.circleMarker([latP, lngP], {
-            radius: radio, fillColor: colorPunto, color: '#FFFFFF', weight: 1.5, fillOpacity: 0.9
-          }).bindPopup('<b>' + sanitizar(nombreMovil) + '</b><br>Hora: ' + p.fechaHora + '<br>Velocidad: ' + p.velocidad + ' km/h');
-          capaRutaActual.addLayer(puntoMarker);
-        });
-  
-        const fechaPartes = fechaIso.split('-');
-        const fechaFormateada = (fechaPartes.length === 3) ? `${fechaPartes[2]}/${fechaPartes[1]}/${fechaPartes[0]}` : fechaIso;
-        const itemLeyenda = document.createElement('div');
-        itemLeyenda.className = 'item-leyenda-dia';
-        itemLeyenda.innerHTML = `<div class="color-dot-leyenda" style="background: ${colorEstilo.glow}"></div><span>${fechaFormateada} (${puntosDia.length} pts)</span>`;
-        panelLeyenda.appendChild(itemLeyenda);
-      });
-  
-      capaRutaActual.addTo(map);
-      if (capaRutaActual.bringToFront) capaRutaActual.bringToFront(); 
-  
-      const primerPunto = puntos[0];
-      const ultimoPunto = puntos[puntos.length - 1];
-      let pLat = parseFloat(String(primerPunto.lat).replace(',','.'));
-      let pLng = parseFloat(String(primerPunto.lng).replace(',','.'));
-  
-      if (puntos.length === 1 || (primerPunto.lat === ultimoPunto.lat && primerPunto.lng === ultimoPunto.lng)) {
-        map.setView([pLat, pLng], 17); 
-      } else {
-        map.fitBounds(capaRutaActual.getBounds(), { padding: [50, 50] });
-      } 
-  
-      document.getElementById('ruta-titulo-movil').innerText = '📍 Recorrido: ' + sanitizar(nombreMovil);
-      document.getElementById('ruta-info-panel').style.display = 'flex';
-      hablarWilson("Recorrido del " + nombreMovil + " trazado en el radar, jefe.", true);
-    } 
-  
-    actualizarFlota();
-    verificarAlertasActivas();
-    cargarGeocercasIniciales();
-    setInterval(actualizarFlota, 12000);
-    setInterval(verificarAlertasActivas, 15000);
-  </script>
-</body>
-</html>
+            '<div><div class="movil-nombre">' + nomLimpio + '</div><div class="movil-id">ID:
